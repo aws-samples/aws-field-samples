@@ -1,6 +1,6 @@
 ## AWS Field Samples
 
-This repo has a collection of solutions which can be deployed independently. Each solution will have its own README file mentioning how to implement the solution. 
+This repo has a collection of solutions which can be deployed independently. Each solution will have its own README file mentioning how to implement the solution.
 
 ## Security
 
