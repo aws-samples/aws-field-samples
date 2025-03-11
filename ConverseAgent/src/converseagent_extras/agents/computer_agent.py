@@ -39,17 +39,9 @@ class ComputerAgent(BaseAgent):
         # Add tools
         self.add_tool_groups([ComputerToolGroup(scale_factor=self.scale_factor)])
 
-    def _post_invocation_processing(self):
-        logger.info("Executing post-invocation steps")
-        self.set_messages(
-            delete_tool_result_blocks_after_next_turn(self.get_messages())
-        )
-
-        self.update_callback(self.get_messages()[-1].update_message)
-
-    def _final_processing(self):
+    def _pre_invocation_processing(self):
         # Adds the screenshot of the page to the last message
-        logger.info("Adding screenshot to last message")
+        logger.info("Adding screenshot to last message - pre")
 
         # Get scaled mouse position
         mouse_x, mouse_y = pyautogui.position()
@@ -66,6 +58,14 @@ class ComputerAgent(BaseAgent):
                 metadata={"retention": "after_next_turn"},
             )
         )
+
+    def _post_invocation_processing(self):
+        logger.info("Executing post-invocation steps")
+        self.set_messages(
+            delete_tool_result_blocks_after_next_turn(self.get_messages())
+        )
+
+        self.update_callback(self.get_messages()[-1].update_message)
 
     def _get_screenshot(self) -> ImageContentBlock:
         # Generate a timestamp-based filename if none is provided

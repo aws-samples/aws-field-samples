@@ -1,5 +1,3 @@
-import asyncio
-
 from pydantic import Field
 
 from converseagent.agents.base.base import BaseAgent
@@ -90,20 +88,7 @@ class BrowserAgent(BaseAgent):
         self.add_tool_group(web_browser_tool_group)
         self.browser_context = web_browser_tool_group.browser_context
 
-    async def _apost_invocation_processing(self):
-        """
-        Executes post invocation processing steps
-        """
-
-        # Handle content block retention
-        logger.info("Deleting content blocks with retention")
-        self.set_messages(
-            delete_tool_result_blocks_after_next_turn(self.get_messages())
-        )
-
-        self.update_callback(self.get_messages()[-1].update_message)
-
-    async def _afinal_processing(self):
+    async def _apre_invocation_processing(self):
         # Add browser context last
         if (
             self.browser_context.browser_initialized
@@ -117,3 +102,18 @@ class BrowserAgent(BaseAgent):
 
             for content_block in await self.browser_context.format():
                 tool_result_message.append_content(content_block)
+
+    async def _apost_invocation_processing(self):
+        """
+        Executes post invocation processing steps
+        """
+
+        # Handle content block retention
+        logger.info("Deleting content blocks with retention")
+        self.set_messages(
+            delete_tool_result_blocks_after_next_turn(self.get_messages())
+        )
+
+        last_message = self.get_messages()[-1]
+        if self.update_callback and last_message.update_message:
+            self.update_callback(last_message.update_message)

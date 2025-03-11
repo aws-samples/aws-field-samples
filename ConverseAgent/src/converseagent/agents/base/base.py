@@ -197,6 +197,9 @@ class BaseAgent(BaseModel):
             # Build the model request
             logger.info("Building model request")
 
+            # (Optional) Execute any pre-iteration processing
+            self._pre_invocation_processing()
+
             model_request = ModelRequest(
                 messages=self.get_messages(),
                 system_message=system_message,
@@ -206,9 +209,6 @@ class BaseAgent(BaseModel):
                 tools=self.get_tools(),
                 additional_model_request_fields=additional_model_request_fields,
             )
-
-            # (Optional) Execute any pre-iteration processing
-            self._pre_invocation_processing()
 
             ## Model invocation
             model_response: ModelResponse = self._invoke_model(model_request)
@@ -301,6 +301,9 @@ class BaseAgent(BaseModel):
             # Build the model request
             logger.info("Building model request")
 
+            # (Optional) Execute any pre-iteration processing
+            await self._apre_invocation_processing()
+
             model_request = ModelRequest(
                 messages=self.get_messages(),
                 system_message=system_message,
@@ -310,9 +313,6 @@ class BaseAgent(BaseModel):
                 tools=self.get_tools(),
                 additional_model_request_fields=additional_model_request_fields,
             )
-
-            # (Optional) Execute any pre-iteration processing
-            await self._apre_invocation_processing()
 
             ## Model invocation
             model_response: ModelResponse = await self._ainvoke_model(model_request)
