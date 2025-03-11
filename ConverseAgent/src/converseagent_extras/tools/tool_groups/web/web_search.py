@@ -1,23 +1,20 @@
 import json
 import os
-from typing import Optional
+from typing import Any, Dict, List
 
 import requests
 from pydantic import Field, model_validator
 
+from converseagent.logging_utils.logger_config import setup_logger
 from converseagent.tools.base import BaseTool, BaseToolGroup
 from converseagent.tools.tool_response import ResponseStatus, TextToolResponse
+from converseagent.utils.retry import with_exponential_backoff
+
+logger = setup_logger(__name__)
 
 
 class WebSearchToolGroup(BaseToolGroup):
-    """Tools for searching the web
-
-    Args:
-        brave_api_key (str, optional): API key for Brave Search. You must
-            specify a Brave API search key or specify BRAVE_API_KEY
-            environment variable.
-
-    """
+    """Tools for searching the web"""
 
     name: str = "web_search_tools"
     description: str = "Tools for searching the internet using Brave Search API"
@@ -52,8 +49,13 @@ class WebSearchToolGroup(BaseToolGroup):
         default=None, description="The Brave API key to use"
     )
 
+    return_extra_snippets: bool = Field(
+        default=True,
+        description="Whether to return extra snippets from the search results",
+    )
+
     @model_validator(mode="after")
-    def validate_tools(self):
+    def _validate_tools(self):
         """Check if tools are passed, otherwise add tools"""
 
         if self.brave_api_key is None:
@@ -64,9 +66,37 @@ class WebSearchToolGroup(BaseToolGroup):
                 )
 
         if not self.tools:
-            self.tools = [BraveSearchTool(brave_api_key=self.brave_api_key)]
+            self.tools = [
+                BraveSearchTool(
+                    brave_api_key=self.brave_api_key,
+                    return_extra_snippets=self.return_extra_snippets,
+                    metadata=self.metadata,
+                )
+            ]
 
         return self
+
+    @classmethod
+    def get_tool_group_spec(cls):
+        """Returns the tool group spec"""
+
+        return {
+            "toolGroupSpec": {
+                "name": cls.model_fields["name"].default,
+                "description": cls.model_fields["description"].default,
+                "inputSchema": {
+                    "json": {
+                        "type": "object",
+                        "properties": {
+                            "brave_api_key": {
+                                "type": "string",
+                                "description": "The Brave API key to use",
+                            }
+                        },
+                    }
+                },
+            }
+        }
 
 
 class BraveSearchTool(BaseTool):
@@ -77,9 +107,13 @@ class BraveSearchTool(BaseTool):
     brave_api_key: str | None = Field(
         default=None, description="The Brave API key to use"
     )
+    return_extra_snippets: bool = Field(
+        default=True,
+        description="Whether to return extra snippets from the search results",
+    )
 
     @model_validator(mode="after")
-    def validate_tool(self):
+    def _validate_tool(self):
         """Check if tools are passed, otherwise add tools"""
 
         if self.brave_api_key is None:
@@ -94,6 +128,47 @@ class BraveSearchTool(BaseTool):
         """Invokes the tool logic"""
 
         return self.search(*args, **kwargs)
+
+    @with_exponential_backoff(max_retries=3, base_delay=1, max_delay=30)
+    def _make_http_get_request(
+        self, url: str, headers: dict, params: dict, timeout: int = 60
+    ) -> List[Dict[str, Any]]:
+        """
+        Makes an HTTP GET request to the specified URL.
+
+        Args:
+            url (str): The URL to send the request to
+            headers (dict): Headers to include in the request
+            params (dict): Query parameters to include in the request
+
+        Returns:
+            requests.Response: The response from the server
+        """
+        logger.info("Making URL get request")
+        response = requests.get(url, headers=headers, params=params, timeout=timeout)
+        logger.info(f"URL get request completed. Status: {response.status_code}")
+
+        if response.status_code == 200:
+            results = response.json().get("web", {}).get("results", [])
+
+            parsed_results = [
+                {
+                    "title": result["title"],
+                    "url": result["url"],
+                    "snippet": result["description"],
+                    "extra_snippets": result["extra_snippets"]
+                    if "extra_snippets" in result and self.return_extra_snippets
+                    else None,
+                }
+                for result in results
+            ]
+
+            return parsed_results
+        else:
+            logger.error(f"Search failed with status code {response.status_code}")
+            raise requests.exceptions.RequestException(
+                f"Search failed with status code {response.status_code}"
+            )
 
     def search(self, query: str, num_results: int = 10) -> TextToolResponse:
         """Searches using the Brave Search API and returns results
@@ -116,29 +191,15 @@ class BraveSearchTool(BaseTool):
         params = {"q": query, "count": num_results}
 
         try:
-            response = requests.get(url, headers=headers, params=params, timeout=60)
+            parsed_results = self._make_http_get_request(
+                url, headers, params, timeout=60
+            )
 
-            if response.status_code == 200:
-                results = response.json().get("web", {}).get("results", [])
-
-                parsed_results = [
-                    {
-                        "title": result["title"],
-                        "url": result["url"],
-                        "snippet": result["description"],
-                    }
-                    for result in results
-                ]
-
-                return TextToolResponse(
-                    ResponseStatus.SUCCESS, json.dumps(parsed_results)
-                )
-
-            else:
-                return TextToolResponse(
-                    ResponseStatus.ERROR,
-                    f"Search failed with status code {response.status_code}",
-                )
+            return TextToolResponse(
+                ResponseStatus.SUCCESS,
+                json.dumps(parsed_results),
+                metadata=self.metadata,
+            )
 
         except Exception as e:
             return TextToolResponse(

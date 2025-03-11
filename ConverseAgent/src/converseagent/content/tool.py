@@ -1,21 +1,13 @@
 from typing import Annotated, Any, Dict, List, Literal, Union
 
-from pydantic import Field, computed_field, field_validator
+from pydantic import Field
 
-from converseagent.content import (
-    BaseContentBlock,
-    DocumentContentBlock,
-    ImageContentBlock,
-    TextContentBlock,
-)
 from converseagent.logging_utils.logger_config import setup_logger
 
-logger = setup_logger(__name__)
+from .base import BaseContentBlock
+from .content import BasicContentBlock
 
-ContentBlock = Annotated[
-    Union[TextContentBlock, ImageContentBlock, DocumentContentBlock],
-    Field(discriminator="type"),
-]
+logger = setup_logger(__name__)
 
 
 class ToolUseContentBlock(BaseContentBlock):
@@ -83,7 +75,7 @@ class ToolResultContentBlock(BaseContentBlock):
 
     type: Literal["tool_result"] = "tool_result"
     tool_use_id: str
-    tool_result_content: List[ContentBlock] = Field(default_factory=List)
+    tool_result_content: List[BasicContentBlock] = Field(default_factory=list)
 
     def format(self) -> Dict[str, Dict[str, Union[str, List[Dict]]]]:
         """Format the tool use content block for a specific format.
@@ -101,15 +93,11 @@ class ToolResultContentBlock(BaseContentBlock):
             }
         }
 
-    def append_content(self, block):
+    def append_content(self, block: BasicContentBlock):
         """Appends the content block to the content list
 
         Args:
-            block (BaseContentBlock): The block to be appended to the content list.
+            block (UserContentBlock): The block to be appended to the content list.
         """
-        if isinstance(block, BaseContentBlock):
-            self.tool_result_content.append(block)
-        else:
-            error_msg = f"Block: {block} must be of type BaseContentBlock"
-            logger.error(error_msg)
-            raise TypeError(error_msg)
+
+        self.tool_result_content.append(block)

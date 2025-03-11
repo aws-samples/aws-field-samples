@@ -3,23 +3,14 @@ from typing import Annotated, Dict, List, Literal, Union
 from pydantic import Field, model_validator
 
 from converseagent.content import (
-    DocumentContentBlock,
-    ImageContentBlock,
     TextContentBlock,
-    ToolUseContentBlock,
 )
+from converseagent.content.assistant import AssistantContentBlock
 from converseagent.logging_utils.logger_config import setup_logger
 from converseagent.messages.base import BaseMessage
 from converseagent.utils.utils import extract_xml_content
 
 logger = setup_logger(__name__)
-
-AssistantContentBlock = Annotated[
-    Union[
-        TextContentBlock, ImageContentBlock, DocumentContentBlock, ToolUseContentBlock
-    ],
-    Field(discriminator="type"),
-]
 
 
 class AssistantMessage(BaseMessage):
@@ -49,88 +40,47 @@ class AssistantMessage(BaseMessage):
     role: Literal["assistant"] = "assistant"
 
     # The raw assistant response message from Converse API
-    message: Dict | None = Field(default_factory=dict)
     text: str | None = Field(default=None)
     content: List[AssistantContentBlock] = Field(default_factory=list)
     current_plan: str | None = Field(default=None)
     update_message: str | None = Field(default=None)
     thinking: str | None = Field(default=None)
     final_response: str | None = Field(default=None)
-
-    @model_validator(mode="after")
-    def validate_text(self) -> "AssistantMessage":
-        """Appends a TextContentBlock for convenience. Ignores text
-        if content is specified.
-
-        Returns:
-            AssistantMessage: The AssistMessage instance
-        """
-        if self.text and self.content == [] and self.message == {}:
-            self.append_text_block(text=self.text)
-
-        return self
+    reasoning: str | None = Field(default=None)
 
     def model_post_init(self, *args, **kwargs):
         """Post initialization for the AssistantMessage class
 
-        Extracts the following information:
-            - current plan
-            - thinking
-            - update message
-            - final response
-            - tool use information
-
+        Extracts the text from the assistant messages
         """
 
-        if self.message:
-            for block in self.message["content"]:
-                if "text" in block:
-                    self.append_content(TextContentBlock(text=block["text"]))
+        if self.content:
+            for block in self.content:
+                if isinstance(block, TextContentBlock):
+                    self.text = block.text
 
-                    self.text = block["text"]
+                    self.current_plan = extract_xml_content(self.text, "current_plan")
 
-                    self.current_plan = extract_xml_content(
-                        block["text"], "current_plan"
+                    self.final_response = extract_xml_content(
+                        self.text, "final_response"
                     )
 
-                    if self.current_plan:
-                        self.current_plan = self.current_plan
-                        logger.debug(f"Current plan: {self.current_plan}")
-
-                    self.thinking = extract_xml_content(block["text"], "thinking")
+                    self.thinking = extract_xml_content(self.text, "thinking")
 
                     if self.thinking:
                         self.thinking = self.thinking
                         logger.debug(f"Thinking: {self.thinking}")
 
                     self.update_message = extract_xml_content(
-                        block["text"], "update_message"
+                        self.text, "update_message"
                     )
                     if self.update_message:
                         self.update_message = self.update_message
                         logger.debug(f"Update message: {self.update_message}")
 
-                    self.final_response = extract_xml_content(
-                        block["text"], "final_response"
-                    )
                     if self.final_response:
                         self.final_response = self.final_response
                         logger.debug(f"Final response: {self.final_response}")
-
-                if "toolUse" in block:
-                    tool = block["toolUse"]
-                    tool_use_id = tool["toolUseId"]
-                    tool_name = tool["name"]
-                    tool_input = tool["input"]
-
-                    self.append_content(
-                        ToolUseContentBlock(
-                            tool_use_id=tool_use_id,
-                            tool_name=tool_name,
-                            tool_input=tool_input,
-                        )
-                    )
-
         return self
 
     def append_text_block(self, text: str):

@@ -8,7 +8,6 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    computed_field,
     field_validator,
     model_validator,
 )
@@ -40,6 +39,10 @@ class BaseContentBlock(BaseModel):
     """
 
     type: str = Field(description="The type of content block")
+    metadata: Dict = Field(
+        default_factory=dict,
+        description="Metadata associated with the content block",
+    )
 
     @abstractmethod
     def format(self) -> Dict:
@@ -105,16 +108,16 @@ class BaseAttachmentContentBlock(BaseContentBlock):
                         and loads content
     """
 
-    uri: Optional[str] = Field(
+    uri: str | None = Field(
         default=None,
         description="The uri of the attachment, it must be prefixed by file:// or s3://",
     )
-    name: Optional[str] = Field(default=None, description="Name of the document")
-    content_bytes: bytes = Field(
+    name: str | None = Field(default=None, description="Name of the document")
+    content_bytes: bytes | None = Field(
         default=None, description="The raw bytes content of the attachment"
     )
-    filename: Optional[str] = Field(default=None, description="The filename")
-    extension: Optional[str] = Field(default=None, description="The file extension")
+    filename: str | None = Field(default=None, description="The filename")
+    extension: str | None = Field(default=None, description="The file extension")
 
     model_config = ConfigDict(
         json_encoders={bytes: lambda v: b64encode(v).decode("utf-8")},
@@ -123,6 +126,7 @@ class BaseAttachmentContentBlock(BaseContentBlock):
 
     @field_validator("content_bytes", mode="before")
     def decode_bytes(cls, value):
+        """Decodes base64 string to bytes"""
         if isinstance(value, str):
             try:
                 return b64decode(value)
@@ -134,62 +138,78 @@ class BaseAttachmentContentBlock(BaseContentBlock):
     def validate_setup(self) -> "BaseAttachmentContentBlock":
         """Validates and sets up the attachment content block based on provided inputs.
 
-
-        This method handles the logic for three scenarios:
-        - URI only
-        - Content bytes only
-        - Both URI and content bytes
-
         Returns:
             BaseAttachmentContentBlock: The validated and setup instance
 
         Raises:
-            ValueError: If neither URI nor content_bytes is provided or
-                if filename/extension are missing when only content_bytes is provided
+            ValueError: If neither URI nor content_bytes is provided
         """
+        self._validate_required_inputs()
 
-        if self.uri is None and self.content_bytes is None:
-            raise ValueError("Either URI or content_bytes must be provided")
-
-        # URI only
         if self.uri:
-            if not (self.uri.startswith("file://") or self.uri.startswith("s3://")):
-                error_msg = "Invalid URI prefix. Must be file:// or s3://"
-                logger.error(error_msg)
-                raise ValueError(error_msg)
+            self._process_uri()
+        elif self.content_bytes:
+            self._validate_content_bytes_inputs()
 
-            # Extract filename and extension from URI
-            uri_filename = self.uri.split("/")[-1]
-            if not self.filename:
-                self.filename = uri_filename
-            if not self.extension:
-                self.extension = uri_filename.split(".")[-1]
-                if not self.extension:
-                    error_msg = (
-                        "Unable to parse extension. Please provide an extension."
-                    )
-                    logger.error(error_msg)
-                    raise ValueError(error_msg)
-
-        # Content bytes only
-        elif self.content_bytes and not self.uri:
-            # Ensure filename and extension are provided
-            if not self.filename or not self.extension:
-                raise ValueError(
-                    "Filename and extension must be provided when only content_bytes is provided"
-                )
-
-        # Set default name if not provided
-        if self.name is None:
-            self.name = self.filename
-
-        # Load the content if content_bytes is not provided
-        if not self.content_bytes:
-            self.load_content()
+        self._set_default_name()
+        self._ensure_content_loaded()
 
         return self
 
-    def load_content(self):
+    def _validate_required_inputs(self) -> None:
+        """Validates that either URI or content_bytes is provided."""
+        if self.uri is None and self.content_bytes is None:
+            raise ValueError("Either URI or content_bytes must be provided")
+
+    def _process_uri(self) -> None:
+        """Processes and validates URI-based inputs."""
+        self._validate_uri_prefix()
+        self._extract_filename_from_uri()
+        self._extract_extension()
+
+    def _validate_uri_prefix(self) -> None:
+        """Validates that the URI has the correct prefix."""
+        if self.uri and not (
+            self.uri.startswith("file://") or self.uri.startswith("s3://")
+        ):
+            error_msg = "Invalid URI prefix. Must be file:// or s3://"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+
+    def _extract_filename_from_uri(self) -> None:
+        """Extracts and sets filename from URI if not already set."""
+
+        if self.uri and not self.filename:
+            self.filename = self.uri.split("/")[-1]
+
+    def _extract_extension(self) -> None:
+        """Extracts and validates file extension."""
+        if self.uri and not self.extension:
+            uri_filename = self.uri.split("/")[-1]
+            self.extension = uri_filename.split(".")[-1]
+            if not self.extension:
+                error_msg = "Unable to parse extension. Please provide an extension."
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+
+    def _validate_content_bytes_inputs(self) -> None:
+        """Validates required inputs when only content_bytes is provided."""
+        if not (self.filename or self.name) or not self.extension:
+            raise ValueError(
+                "Filename and extension must be provided when only content_bytes is provided"
+            )
+
+    def _set_default_name(self) -> None:
+        """Sets the default name if not provided."""
+        if self.name is None:
+            self.name = self.filename
+
+    def _ensure_content_loaded(self) -> None:
+        """Ensures content is loaded if not already present."""
+        if not self.content_bytes:
+            self.load_content()
+
+    def load_content(self) -> None:
         """Loads the content of the attachment from the specified URI.
 
         Supports loading content from local files (file://) or Amazon S3 (s3://)
@@ -220,7 +240,7 @@ class BaseAttachmentContentBlock(BaseContentBlock):
             attachment.load_content() # Loads file content into content_bytes
 
         """
-        if self.uri.startswith("file://"):
+        if self.uri and self.uri.startswith("file://"):
             try:
                 with open(self.uri[7:], "rb") as f:
                     self.content_bytes = f.read()
@@ -233,7 +253,7 @@ class BaseAttachmentContentBlock(BaseContentBlock):
                 logger.error(error_msg)
                 raise e
 
-        elif self.uri.startswith("s3://"):
+        elif self.uri and self.uri.startswith("s3://"):
             client = boto3.client("s3")
 
             # Download the file from S3 as bytes

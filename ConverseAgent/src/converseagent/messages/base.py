@@ -15,7 +15,7 @@ class BaseMessage(BaseModel, Generic[T]):
         content (List[ContentBlock]): The list of content blocks
     """
 
-    role: Literal["user", "assistant"]
+    role: Literal["user", "assistant", "system", "tool"]
     content: List[T] = Field(default_factory=list)
 
     def format(self) -> Dict[str, Union[str, List[Dict[str, Any]]]]:

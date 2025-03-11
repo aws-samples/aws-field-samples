@@ -54,6 +54,14 @@ class BaseMemory(BaseModel):
 
         return self.memory
 
+    def set_messages(self, messages: List[Message]) -> None:
+        """Sets the messages in memory
+
+        Args:
+            messages (List[Message]): The list of messages to set
+        """
+        self.memory = messages
+
     def get_converse_messages(self) -> List[Dict[str, Any]]:
         """Returns the full message history in Converse format
 

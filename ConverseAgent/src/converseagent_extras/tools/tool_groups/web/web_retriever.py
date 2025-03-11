@@ -2,7 +2,7 @@ from typing import Dict, List, Optional
 
 import requests
 from html2text import HTML2Text
-from pydantic import model_validator
+from pydantic import Field, model_validator
 
 from converseagent.content import TextContentBlock
 from converseagent.logging_utils.logger_config import setup_logger
@@ -36,9 +36,21 @@ class WebRetrieverToolGroup(BaseToolGroup):
         """Check if tools are passed, otherwise add tools"""
 
         if not self.tools:
-            self.tools = [RetrieveUrlTool()]
+            self.tools = [RetrieveUrlTool(metadata=self.metadata)]
 
         return self
+
+    @classmethod
+    def get_tool_group_spec(cls):
+        """Returns the tool group spec"""
+
+        return {
+            "toolGroupSpec": {
+                "name": cls.model_fields["name"].default,
+                "description": cls.model_fields["description"].default,
+                "inputSchema": {},
+            }
+        }
 
 
 class RetrieveUrlTool(BaseTool):
@@ -73,9 +85,11 @@ class RetrieveUrlTool(BaseTool):
                 h = HTML2Text()
                 h.ignore_links = False
                 h.ignore_images = False
-                return TextContentBlock(text=h.handle(response.text))
+                return TextContentBlock(
+                    text=h.handle(response.text), metadata=self.metadata
+                )
             else:
-                return TextContentBlock(text=response.text)
+                return TextContentBlock(text=response.text, metadata=self.metadata)
 
         except Exception as e:
             logger.error(f"Error retrieving URL {url}: {e}")
@@ -92,7 +106,10 @@ class RetrieveUrlTool(BaseTool):
             contents.append(self.retrieve_url(url))
 
         tool_response = BaseToolResponse(
-            status=ResponseStatus.SUCCESS, type=ResponseType.CONTENT, content=contents
+            status=ResponseStatus.SUCCESS,
+            type=ResponseType.CONTENT,
+            content=contents,
+            metadata=self.metadata,
         )
 
         return tool_response

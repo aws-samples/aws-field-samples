@@ -55,8 +55,6 @@ class FileSystemToolGroup(BaseToolGroup):
     to read the PDF file again unless you absolutely need to.
     """
 
-    base_dir: str = base_dir
-
     @model_validator(mode="after")
     def validate_tools(self):
         """Check if tools are passed, otherwise add tools"""
@@ -75,8 +73,31 @@ class FileSystemToolGroup(BaseToolGroup):
                 ReadPdfInfoTool(base_dir=self.base_dir),
                 ReadPdfFileTool(base_dir=self.base_dir),
                 EditTextFileTool(base_dir=self.base_dir),
+                GetDirectoryTreeTool(base_dir=self.base_dir),
             ]
         return self
+
+    @classmethod
+    def get_tool_group_spec(cls):
+        """Returns the tool group spec"""
+
+        return {
+            "toolGroupSpec": {
+                "name": cls.model_fields["name"].default,
+                "description": cls.model_fields["description"].default,
+                "inputSchema": {
+                    "json": {
+                        "type": "object",
+                        "properties": {
+                            "base_dir": {
+                                "type": "string",
+                                "description": "The base directory to limit the tools to",
+                            }
+                        },
+                    }
+                },
+            }
+        }
 
 
 def check_file_path_within_base(base_dir, path):
@@ -770,7 +791,10 @@ class WriteTextFileTool(BaseFileTool):
     """Writes contents to a text file"""
 
     name: str = "write_text_file"
-    description: str = "Use this tool to create a new file or write to an existing file"
+    description: str = """Use this tool to create a new file or write to an existing file.
+    When using this tool, you must absolutely write the entire contents even
+    if only a portion of it changes as the entire file will be overriden with the content you specify.
+    """
 
     def invoke(self, *args, **kwargs) -> BaseToolResponse:
         """Invokes the tool logic"""
@@ -1414,6 +1438,103 @@ class EditTextFileTool(BaseTool):
                             },
                         },
                         "required": ["file_path"],
+                    }
+                },
+            }
+        }
+
+
+class GetDirectoryTreeTool(BaseFileTool):
+    """Creates a tree view of a directory structure"""
+
+    name: str = "get_directory_tree"
+    description: str = "Use this tool to generate a tree view of a directory structure."
+
+    def invoke(self, *args, **kwargs) -> TextToolResponse:
+        """Invokes the tool logic"""
+        return self.get_directory_tree(*args, **kwargs)
+
+    def get_directory_tree(self, path: str, max_depth: int = -1) -> TextToolResponse:
+        """Creates a tree view of the directory structure.
+
+        Args:
+            path (str): The root directory path to start from
+            max_depth (int, optional): Maximum depth to traverse (-1 for unlimited).
+                Defaults to 1.
+
+        Returns:
+            TextToolResponse: The response containing the tree structure
+        """
+        # Get absolute path
+        path = os.path.abspath(path)
+
+        # Check path
+        if self.base_dir:
+            check_file_path_within_base(self.base_dir, path)
+
+        try:
+            if not os.path.exists(path):
+                return TextToolResponse(
+                    ResponseStatus.ERROR, f"Error: Path not found at {path}"
+                )
+
+            def generate_tree(
+                start_path: str, prefix: str = "", current_depth: int = 0
+            ) -> List[str]:
+                if max_depth != -1 and current_depth > max_depth:
+                    return []
+
+                tree_lines = []
+                dir_contents = sorted(os.listdir(start_path))
+
+                for i, item in enumerate(dir_contents):
+                    item_path = os.path.join(start_path, item)
+                    is_last = i == len(dir_contents) - 1
+
+                    # Create the proper prefix for current item
+                    current_prefix = "└── " if is_last else "├── "
+                    tree_lines.append(prefix + current_prefix + item)
+
+                    if os.path.isdir(item_path):
+                        # Create the proper prefix for items inside this directory
+                        next_prefix = prefix + ("    " if is_last else "│   ")
+                        tree_lines.extend(
+                            generate_tree(item_path, next_prefix, current_depth + 1)
+                        )
+
+                return tree_lines
+
+            tree_content = [os.path.basename(path)]
+            tree_content.extend(generate_tree(path))
+
+            return TextToolResponse(ResponseStatus.SUCCESS, "\n".join(tree_content))
+
+        except Exception as e:
+            return TextToolResponse(
+                ResponseStatus.ERROR,
+                f"Creating directory tree encountered an error: {e}",
+            )
+
+    def get_tool_spec(self) -> Dict:
+        return {
+            "toolSpec": {
+                "name": self.name,
+                "description": self.description,
+                "inputSchema": {
+                    "json": {
+                        "type": "object",
+                        "properties": {
+                            "path": {
+                                "type": "string",
+                                "description": "The root directory path to create tree from",
+                            },
+                            "max_depth": {
+                                "type": "integer",
+                                "description": "Maximum depth to traverse (default: 1)",
+                                "default": 1,
+                            },
+                        },
+                        "required": ["path"],
                     }
                 },
             }

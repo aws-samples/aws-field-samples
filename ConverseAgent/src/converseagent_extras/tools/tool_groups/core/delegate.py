@@ -2,12 +2,11 @@ from typing import List, Literal, Optional
 
 from pydantic import Field, model_validator
 
-from converseagent.agents.base import BaseAgent
+from converseagent.agents.base.base import BaseAgent
 from converseagent.content import TextContentBlock
 from converseagent.memory_store import BaseMemoryStore
 from converseagent.messages import UserMessage
-from converseagent.models.bedrock import BedrockConverseModel
-from converseagent.models.sagemaker import JumpStartModel
+from converseagent.models.bedrock import BedrockModel
 from converseagent.tools.base import BaseTool, BaseToolGroup
 from converseagent.tools.tool_response import (
     BaseToolResponse,
@@ -16,7 +15,6 @@ from converseagent.tools.tool_response import (
     TextToolResponse,
 )
 from converseagent_extras.tools.tool_groups.core.fs import FileSystemToolGroup
-from converseagent_extras.tools.tool_groups.graph.graph import GraphToolGroup
 
 DELEGATE_PROMPT_TEMPLATE = """
 You have been delegated the following task. Ensure that you complete the task.
@@ -101,7 +99,7 @@ class DelegateTool(BaseTool):
 
     model_type: Literal["bedrock", "jumpstart"] = Field(default="bedrock")
     sagemaker_endpoint_name: str = Field(default=None)
-    model: BedrockConverseModel | JumpStartModel = Field(default=None)
+    model: BedrockModel = Field(default=None)
 
     def invoke(self, delegations: List[dict]) -> BaseToolResponse:
         """Invokes the tool logic
@@ -151,13 +149,8 @@ class DelegateTool(BaseTool):
                 text="Error: Invalid complexity value. Must provide one of: simple, complex",
             )
 
-        if self.model_type == "bedrock":
-            self.model = BedrockConverseModel(bedrock_model_id=bedrock_model_id)
-        elif self.model_type == "jumpstart":
-            self.model = JumpStartModel(
-                model_id="jumpstart",
-                sagemaker_endpoint_name=self.sagemaker_endpoint_name,
-            )
+        self.model = BedrockModel(bedrock_model_id=bedrock_model_id)
+
         agent = BaseAgent(model=self.model)
         agent.add_tool_groups(self.delegate_agent_tool_groups)
 

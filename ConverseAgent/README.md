@@ -2,6 +2,8 @@
 
 A powerful framework for building custom AI agents using Amazon Bedrock and the Converse API. ConverseAgent provides a flexible foundation for creating, customizing, and deploying AI-powered systems with advanced capabilities.
 
+DISCLAIMER: The provided sample code are only for experimenting and reference. It is not meant to be used directly in production deployments. It is currently being developed and can have breaking changes.
+
 [![License: MIT-0](https://img.shields.io/badge/License-MIT--0-yellow.svg)](https://opensource.org/licenses/MIT-0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Poetry](https://img.shields.io/badge/poetry-managed-blue)](https://python-poetry.org/)
@@ -21,7 +23,7 @@ A powerful framework for building custom AI agents using Amazon Bedrock and the 
 ## 📋 Prerequisites
 
 - AWS Account with appropriate permissions
-- Python 3.11 or higher
+- Python 3.11 or later
 - AWS IAM user with access to:
   - Amazon Bedrock
   - Supported foundation models
@@ -30,6 +32,7 @@ A powerful framework for building custom AI agents using Amazon Bedrock and the 
 - Poetry (Python dependency management)
 - Make (for using Makefile commands)
 - Git
+- Node.js 18.18 or later
 
 ## 🚀 Installation
 
@@ -43,14 +46,25 @@ A powerful framework for building custom AI agents using Amazon Bedrock and the 
    ```
 
 2. **Install Dependencies**
-   ```bash
-   # Install all dependencies including development tools
-   make build
-   make install
-   poetry install --with extras
-   ```
 
-Open a web browser and navigate to http://localhost:8000
+If using venv and pip:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install -r requirements.txt
+```
+
+If using poetry:
+
+```bash
+# Install all dependencies including development tools
+make build
+make install
+poetry install --with extras, ui
+```
+
 
 ### Development Installation
 
@@ -72,9 +86,9 @@ agent = BaseAgent(model=model)
 
 # Create and send a message
 user_message = UserMessage(text="Hey, how's it going?")
-response = agent.invoke_agent(user_message=user_message)
+response = agent.invoke(user_message=user_message)
 
-print(response["text"])
+print(response["body"]["text"])
 ```
 
 ## 📚 Documentation
@@ -83,7 +97,6 @@ For more detailed information and examples:
 
 - [Sample Notebooks](./notebooks)
 - [Developer Guide](./DEVELOPER-GUIDE.md)
-- [API Reference](link-to-docs) # TODO: Add when available
 
 ## 🛠️ Project Structure
 
@@ -92,9 +105,25 @@ ConverseAgent/
 ├── src/
 │   ├── converseagent/       # Core library
 │   └── converseagent_extras/# Additional features
-├── ui/                      # Web interface
+├── webui/                   # Web interface
 ├── tests/                   # Test suite
 └── notebooks/               # Example notebooks
+```
+
+```
+ConveresAgent/src/converesagent/
+├── agents/                      # Core agent implementation and conversation flow orchestration
+├── content/                     # Content block types for structuring conversation elements
+├── context/                     # Context management for managing memory
+├── explainability/             # Tracking and logging of model invocations for transparency
+├── logging_utils/              # Logging configuration and setup utilities
+├── memory/                     # Conversation history and context management
+├── memory_store/              # Persistent storage for conversation states
+├── messages/                  # Message type definitions (User, Assistant, System)
+├── models/                    # Model interfaces, configs, and request/response handling
+├── prompts/                   # System prompt templates and default prompts
+├── tools/                     # Extensible tool system for agent capabilities
+└── utils/                     # Common utilities and custom error handling
 ```
 
 ## 🤝 Contributing

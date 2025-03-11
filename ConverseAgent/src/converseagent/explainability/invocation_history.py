@@ -3,6 +3,7 @@ from typing import Annotated, Dict, List, Union
 from pydantic import BaseModel, Field, model_validator
 
 from converseagent.messages import AssistantMessage, UserMessage
+from converseagent.models.response import ModelResponse
 
 Message = Annotated[Union[UserMessage, AssistantMessage], Field(discriminator="role")]
 
@@ -10,7 +11,7 @@ Message = Annotated[Union[UserMessage, AssistantMessage], Field(discriminator="r
 class BaseInvocationLog(BaseModel):
     """A class that represents a single invocation to Converse"""
 
-    response: Dict | None = Field(
+    response: ModelResponse | None = Field(
         default=None,
         description="The Converse API response. If provided, it will \
             automatically be parsed",
@@ -44,15 +45,17 @@ class BaseInvocationLog(BaseModel):
     @model_validator(mode="after")
     def parse_response(self):
         if self.response:
-            assistant_message = AssistantMessage(
-                message=self.response["output"]["message"]
-            )
+            assistant_message = self.response.assistant_message
 
-            self.request_id = self.response["ResponseMetadata"]["RequestId"]
+            self.request_id = (
+                self.response.request_id
+                if self.response.request_id is not None
+                else None
+            )
             self.output_message = assistant_message
-            self.input_tokens = self.response["usage"]["inputTokens"]
-            self.output_tokens = self.response["usage"]["outputTokens"]
-            self.total_tokens = self.response["usage"]["totalTokens"]
+            self.input_tokens = self.response.input_tokens
+            self.output_tokens = self.response.output_tokens
+            self.total_tokens = self.response.total_tokens
             self.update_message = assistant_message.update_message
             self.current_plan = assistant_message.current_plan
             self.thinking = assistant_message.thinking

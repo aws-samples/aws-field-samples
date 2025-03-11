@@ -17,7 +17,7 @@ uninstall:
 	pip uninstall -y converseagent
 
 run-ui:
-	cd ./ui && python backend.py
+	cd webui && ./start_webui.sh
 
 # Test commands
 test:

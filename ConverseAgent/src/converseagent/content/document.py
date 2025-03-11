@@ -67,7 +67,7 @@ class DocumentContentBlock(BaseAttachmentContentBlock):
         return v
 
     def format(self) -> Dict[str, Dict[str, Union[str, Dict[str, bytes]]]]:
-        """Formats the document block to Convorse Format
+        """Formats the document block to Converse Format
 
 
         Returns:

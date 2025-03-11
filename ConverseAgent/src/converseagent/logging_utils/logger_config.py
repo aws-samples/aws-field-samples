@@ -1,23 +1,30 @@
 import logging
 
 
-def setup_logger(name: str) -> logging.Logger:
+def setup_logging() -> None:
     # Initialize logger
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
 
-    if not logger.handlers:
+    if not root_logger.handlers:
         # Create console handler and set level
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
 
         # Create formatter
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
-        console_handler.setFormatter(formatter)
+        handler.setFormatter(formatter)
 
         # Add handler to logger
-        logger.addHandler(console_handler)
+        root_logger.addHandler(handler)
+
+
+def setup_logger(name: str) -> logging.Logger:
+    # Ensure root logging is configured
+    if not logging.getLogger().handlers:
+        setup_logging()
+
+    logger = logging.getLogger(name)
 
     return logger

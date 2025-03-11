@@ -1,7 +1,10 @@
+import asyncio
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
 
 from pydantic import BaseModel
+
+from converseagent.models.request import ModelRequest
+from converseagent.models.response import ModelResponse
 
 
 class BaseChatModel(BaseModel, ABC):
@@ -13,21 +16,34 @@ class BaseChatModel(BaseModel, ABC):
     @abstractmethod
     def invoke(
         self,
-        messages: List[dict],
-        system: List[Dict[str, str]],
-        inference_config: Dict[str, str | int],
-        tool_config: Dict[str, List[Any]],
-    ) -> Dict:
+        model_request: ModelRequest,
+    ) -> ModelResponse:
         """Invokes the model
 
-        Attributes:
-            messages (List[dict]): The list of alternating User and Assistant
-                messages in Converse format.
-            system (List[Dict[str, str]): A list of ContentBlock with text content
-                for the system prompt.
-            inference_config (Dict[str, str | int]): The inferenceConfig following
-                Converse API inferenceConfig format.
-            tool_config (Dict[str, List[Any]]): The toolConfig following
-                Converse API toolConfig format.
+        Args:
+            model_request (ModelRequest): The request to the model
+
+        Returns:
+            ModelResponse: The response from the model
         """
         pass
+
+    async def ainvoke(
+        self,
+        model_request: ModelRequest,
+    ) -> ModelResponse:
+        """Invokes the model asynchronously.
+
+        Override this to provide an async implementation.
+        Otherwise this will run invoke in an ThreadPoolExecutor
+
+        Args:
+            model_request (ModelRequest): The request to the model
+
+        Returns:
+            ModelResponse: The response from the model
+        """
+        loop = asyncio.get_running_loop()
+        model_response = await loop.run_in_executor(None, self.invoke, model_request)
+
+        return model_response

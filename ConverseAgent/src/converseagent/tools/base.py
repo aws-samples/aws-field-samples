@@ -1,8 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict
-from converseagent.tools.tool_response import BaseToolResponse
+from typing import Dict, List
 
 from pydantic import BaseModel, Field
+
+from converseagent.content import TextContentBlock
+from converseagent.tools.tool_response import (
+    BaseToolResponse,
+    ResponseStatus,
+    ResponseType,
+)
 
 
 class BaseTool(BaseModel, ABC):
@@ -10,11 +16,30 @@ class BaseTool(BaseModel, ABC):
 
     name: str = Field(description="Name of the tool")
     description: str = Field(description="Comprehensive description of the tool")
+    is_async: bool = Field(
+        default=False, description="Whether the tool is asynchronous"
+    )
+    metadata: dict = Field(default_factory=dict, description="Metadata for the tool")
 
-    @abstractmethod
     def invoke(self, *args, **kwargs) -> BaseToolResponse:
-        """Invoke the tool logic"""
-        pass
+        """Invoke the tool logic
+
+        Override this method to provide synchronous implementation
+        """
+        return BaseToolResponse(
+            status=ResponseStatus.SUCCESS,
+            type=ResponseType.CONTENT,
+            content=[TextContentBlock(text="Tool not implemented")],
+        )
+
+    async def ainvoke(self, *args, **kwargs) -> BaseToolResponse:
+        """Invoke the tool logic asynchronously
+
+        Default implementation that calls the synchronous invoke method.
+        Override this method to provide true async implementation.
+        """
+
+        return self.invoke(*args, **kwargs)
 
     @abstractmethod
     def get_tool_spec(spec) -> Dict:
@@ -34,6 +59,8 @@ class BaseToolGroup(BaseModel):
     tools: List[BaseTool] | None = Field(
         default_factory=list, description="List of tools as part of the tool group"
     )
+
+    metadata: dict = Field(default_factory=dict, description="Metadata for the tool")
 
     def add_tool(self, tool: BaseTool) -> None:
         """Add a tool to the group

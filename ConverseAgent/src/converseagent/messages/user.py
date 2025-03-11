@@ -1,24 +1,12 @@
-from typing import Annotated, List, Literal, Union
+from typing import List, Literal
 
 from pydantic import Field, model_validator
 
 from converseagent.content import (
-    DocumentContentBlock,
-    ImageContentBlock,
     TextContentBlock,
-    ToolResultContentBlock,
 )
+from converseagent.content.user import UserContentBlock
 from converseagent.messages.base import BaseMessage
-
-UserContentBlock = Annotated[
-    Union[
-        TextContentBlock,
-        ImageContentBlock,
-        DocumentContentBlock,
-        ToolResultContentBlock,
-    ],
-    Field(discriminator="type"),
-]
 
 
 class UserMessage(BaseMessage[UserContentBlock]):
