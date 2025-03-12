@@ -9,7 +9,7 @@ import time
 from typing import Any, Dict, List, Optional
 
 from pdf2image import convert_from_path, pdfinfo_from_path
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, model_validator
 
 from converseagent.content import ImageContentBlock, TextContentBlock
 from converseagent.logging_utils.logger_config import setup_logger

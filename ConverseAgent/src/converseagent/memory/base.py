@@ -66,7 +66,7 @@ class BaseMemory(BaseModel):
         """Returns the full message history in Converse format
 
         Returns:
-            list: The list of stored messages in Coverse format
+            list: The list of stored messages in Converse format
         """
 
         return [message.format() for message in self.memory]

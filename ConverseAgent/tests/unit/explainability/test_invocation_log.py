@@ -40,7 +40,6 @@ class TestBaseInvocationHistory:
         assert invocation_history.get_history() == [sample_log]
 
     def test_token_count(self, sample_log):
-
         invocation_history = BaseInvocationHistory()
         invocation_history.append(log=sample_log)
 

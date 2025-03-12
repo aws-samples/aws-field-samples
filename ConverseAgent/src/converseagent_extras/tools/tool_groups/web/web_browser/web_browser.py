@@ -292,12 +292,12 @@ class BrowserContext(BaseModel):
 
                         if not is_visible:
                             return None
-                    except:
+                    except Exception:
                         return None
 
                 try:
                     bbox = await element.bounding_box()
-                except:
+                except Exception:
                     bbox = None
 
                 if bbox is None:

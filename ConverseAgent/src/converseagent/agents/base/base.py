@@ -344,7 +344,7 @@ class BaseAgent(BaseModel):
                 current_iteration += 1
 
                 if current_iteration > max_iterations:
-                    self._handle_max_iterations_exceeded
+                    self._handle_max_iterations_exceeded()
             else:
                 logger.error(f"Agent stopped: {stop_result}")
                 break

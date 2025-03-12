@@ -25,14 +25,8 @@ class TestAssistantMessage:
         # Used in the assertion
         content = [text_content_block, tool_use_content_block]
 
-        # Mimic the assistant message from Converse API
-        message = {
-            "role": "assistant",
-            "content": [block.format() for block in content],
-        }
-
         # Build the assistant message
-        assistant_message = AssistantMessage(message=message)
+        assistant_message = AssistantMessage(content=content)
 
         # Test the extractions
         assert assistant_message.current_plan == extract_xml_content(

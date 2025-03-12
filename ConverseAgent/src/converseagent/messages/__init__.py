@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 from typing import Annotated, Union
 
 from pydantic import Field

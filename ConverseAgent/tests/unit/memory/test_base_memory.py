@@ -1,6 +1,5 @@
-from converseagent.content import TextContentBlock
 from converseagent.memory import BaseMemory
-from converseagent.messages import UserMessage, AssistantMessage
+from converseagent.messages import AssistantMessage, UserMessage
 
 
 class TestBaseMemory:

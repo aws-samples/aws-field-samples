@@ -101,9 +101,9 @@ class TestToolResultContentBlock:
         tool_result_json = tool_result_content_block.model_dump_json()
 
         tool_result_expected = (
-            '{"type":"tool_result","tool_use_id":"some_id",'
-            '"tool_result_content":[{"type":"text","text":"Sample 1"},'
-            '{"type":"text","text":"Sample 2"}]}'
+            '{"type":"tool_result","metadata":{},"tool_use_id":"some_id",'
+            '"tool_result_content":[{"type":"text","metadata":{},"text":"Sample 1"},'
+            '{"type":"text","metadata":{},"text":"Sample 2"}]}'
         )
 
         assert tool_result_json == tool_result_expected

@@ -1,6 +1,6 @@
-from typing import Annotated, Dict, List, Literal, Union
+from typing import List, Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field
 
 from converseagent.content import (
     TextContentBlock,

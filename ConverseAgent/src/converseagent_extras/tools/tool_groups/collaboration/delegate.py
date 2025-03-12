@@ -1,10 +1,12 @@
-from typing import List, Literal, Optional
+# TODO: Currently this delegate tool needs refactoring and testing
+# This currently does not work
+
+from typing import List, Literal
 
 from pydantic import Field, model_validator
 
 from converseagent.agents.base.base import BaseAgent
 from converseagent.content import TextContentBlock
-from converseagent.memory_store import BaseMemoryStore
 from converseagent.messages import UserMessage
 from converseagent.models.bedrock import BedrockModel
 from converseagent.tools.base import BaseTool, BaseToolGroup
@@ -12,9 +14,7 @@ from converseagent.tools.tool_response import (
     BaseToolResponse,
     ResponseStatus,
     ResponseType,
-    TextToolResponse,
 )
-from converseagent_extras.tools.tool_groups.core.fs import FileSystemToolGroup
 
 DELEGATE_PROMPT_TEMPLATE = """
 You have been delegated the following task. Ensure that you complete the task.

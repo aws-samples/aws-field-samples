@@ -22,7 +22,7 @@ class TestImageContentBlock:
         """
         # Test creating a ImageContentBlock instance with an invalid URI
         with pytest.raises(ValueError):
-            test_image_content_block = ImageContentBlock(uri="invalid_uri")
+            ImageContentBlock(uri="invalid_uri")
 
     def test_image_content_block_missing_uri(self):
         """
@@ -30,7 +30,7 @@ class TestImageContentBlock:
         """
         # Test creating a ImageContentBlock instance with a missing URI
         with pytest.raises(ValueError):
-            test_image_content_block = ImageContentBlock()
+            ImageContentBlock()
 
     def test_document_converse_format(self, sample_image):
         """
@@ -59,11 +59,11 @@ class TestImageContentBlock:
 
         with pytest.raises(ValueError):
             # Test creating a ImageContentBlock instance without a filename or name
-            test_image_content_block = ImageContentBlock(content_bytes=content_bytes)
+            ImageContentBlock(content_bytes=content_bytes)
 
         with pytest.raises(ValueError):
             # Test creating a ImageContentBlock instance without an extension
-            test_image_content_block = ImageContentBlock(content_bytes=content_bytes)
+            ImageContentBlock(content_bytes=content_bytes)
 
     def test_serialization(self, sample_image):
         """

@@ -1,8 +1,6 @@
-from typing import Dict, List, Optional
-
 import requests
 from html2text import HTML2Text
-from pydantic import Field, model_validator
+from pydantic import model_validator
 
 from converseagent.content import TextContentBlock
 from converseagent.logging_utils.logger_config import setup_logger
@@ -11,7 +9,6 @@ from converseagent.tools.tool_response import (
     BaseToolResponse,
     ResponseStatus,
     ResponseType,
-    TextToolResponse,
 )
 
 logger = setup_logger(__name__)

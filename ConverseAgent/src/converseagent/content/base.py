@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from base64 import b64decode, b64encode
-from typing import Dict, Optional
+from typing import Dict
 
 import boto3  # type: ignore
 from botocore.exceptions import ClientError  # type: ignore

@@ -17,6 +17,9 @@ boto3 = "^1.35.63"
 requests = "^2.32.3"
 python-dotenv = "^1.0.1"
 pydantic-settings = "^2.8.1"
+ruff = "^0.9.10"
+ipykernel = "^6.29.5"
+pytest = "^8.3.5"
 
 [tool.poetry.group.extras.dependencies]
 pdf2image = "^1.17.0"
@@ -37,3 +40,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
+
+[tool.bandit.assert_used]
+skips = ["*/test_*.py", "*test.py"]

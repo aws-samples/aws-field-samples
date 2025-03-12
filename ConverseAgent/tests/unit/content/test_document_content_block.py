@@ -22,7 +22,7 @@ class TestDocumentContentBlock:
         """
         # Test creating a DocumentContentBlock instance with an invalid URI
         with pytest.raises(ValueError):
-            test_document_content_block = DocumentContentBlock(uri="invalid_uri")
+            DocumentContentBlock(uri="invalid_uri")
 
     def test_document_content_block_missing_uri(self):
         """
@@ -30,7 +30,7 @@ class TestDocumentContentBlock:
         """
         # Test creating a DocumentContentBlock instance with a missing URI
         with pytest.raises(ValueError):
-            test_document_content_block = DocumentContentBlock()
+            DocumentContentBlock()
 
     def test_document_converse_format(self, sample_pdf):
         """
@@ -62,15 +62,11 @@ class TestDocumentContentBlock:
 
         with pytest.raises(ValueError):
             # Test creating a DocumentContentBlock instance without a filename or name
-            test_document_content_block = DocumentContentBlock(
-                content_bytes=content_bytes
-            )
+            DocumentContentBlock(content_bytes=content_bytes)
 
         with pytest.raises(ValueError):
             # Test creating a DocumentContentBlock instance without an extension
-            test_document_content_block = DocumentContentBlock(
-                content_bytes=content_bytes, name="doc1"
-            )
+            DocumentContentBlock(content_bytes=content_bytes, name="doc1")
 
     def test_serialization(self, sample_pdf):
         """

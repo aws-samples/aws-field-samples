@@ -9,14 +9,19 @@ import pytest
 
 
 @pytest.fixture
+def data_dir():
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+
+
+@pytest.fixture
 def sample_text():
     return {"text": "This is a sample text."}
 
 
 @pytest.fixture
-def sample_image():
+def sample_image(data_dir):
     return {
-        "uri": "file://tests/data/sample_image.png",
+        "uri": f"file://{data_dir}/sample_image.png",
         "extension": "png",
         "filename": "sample_image.png",
         "name": "sample_image.png",
@@ -24,9 +29,9 @@ def sample_image():
 
 
 @pytest.fixture
-def sample_pdf():
+def sample_pdf(data_dir):
     return {
-        "uri": "file://tests/data/sample_pdf_doc.pdf",
+        "uri": f"file://{data_dir}/sample_pdf_doc.pdf",
         "extension": "pdf",
         "filename": "sample_pdf_doc.pdf",
         "name": "sample_pdf_doc.pdf",

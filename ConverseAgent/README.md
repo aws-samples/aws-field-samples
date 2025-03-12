@@ -65,7 +65,6 @@ make install
 poetry install --with extras, ui
 ```
 
-
 ### Development Installation
 
 Follow the [Developer Guide](./DEVELOPER-GUIDE.md)
@@ -97,34 +96,6 @@ For more detailed information and examples:
 
 - [Sample Notebooks](./notebooks)
 - [Developer Guide](./DEVELOPER-GUIDE.md)
-
-## 🛠️ Project Structure
-
-```
-ConverseAgent/
-├── src/
-│   ├── converseagent/       # Core library
-│   └── converseagent_extras/# Additional features
-├── webui/                   # Web interface
-├── tests/                   # Test suite
-└── notebooks/               # Example notebooks
-```
-
-```
-ConveresAgent/src/converesagent/
-├── agents/                      # Core agent implementation and conversation flow orchestration
-├── content/                     # Content block types for structuring conversation elements
-├── context/                     # Context management for managing memory
-├── explainability/             # Tracking and logging of model invocations for transparency
-├── logging_utils/              # Logging configuration and setup utilities
-├── memory/                     # Conversation history and context management
-├── memory_store/              # Persistent storage for conversation states
-├── messages/                  # Message type definitions (User, Assistant, System)
-├── models/                    # Model interfaces, configs, and request/response handling
-├── prompts/                   # System prompt templates and default prompts
-├── tools/                     # Extensible tool system for agent capabilities
-└── utils/                     # Common utilities and custom error handling
-```
 
 ## 🤝 Contributing
 

@@ -1,7 +1,5 @@
 from datetime import datetime
 from io import BytesIO
-from time import sleep
-from typing import Any, Dict, List, Union
 
 import pyautogui
 from PIL import ImageDraw

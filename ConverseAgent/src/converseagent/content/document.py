@@ -1,6 +1,6 @@
 from typing import ClassVar, Dict, Literal, Union
 
-from pydantic import computed_field, field_validator
+from pydantic import field_validator
 
 from converseagent.content.base import BaseAttachmentContentBlock
 from converseagent.logging_utils.logger_config import setup_logger
