@@ -58,7 +58,6 @@ class FileSystemToolGroup(BaseToolGroup):
     @model_validator(mode="after")
     def validate_tools(self):
         """Check if tools are passed, otherwise add tools"""
-
         if not self.tools:
             self.tools = [
                 ListDirectoryTool(base_dir=self.base_dir),
@@ -80,7 +79,6 @@ class FileSystemToolGroup(BaseToolGroup):
     @classmethod
     def get_tool_group_spec(cls):
         """Returns the tool group spec"""
-
         return {
             "toolGroupSpec": {
                 "name": cls.model_fields["name"].default,
@@ -110,8 +108,8 @@ def check_file_path_within_base(base_dir, path):
 
     Raises:
         ValueError
-    """
 
+    """
     # Check if path in base dir, raise error if not
     if not os.path.abspath(path).startswith(os.path.abspath(base_dir)):
         raise PermissionError(
@@ -135,7 +133,6 @@ class ListDirectoryTool(BaseFileTool):
 
     def invoke(self, *args, **kwargs) -> TextToolResponse:
         """Invokes the tool logic"""
-
         return self.list_directory(*args, **kwargs)
 
     def list_directory(self, path: str) -> TextToolResponse:
@@ -146,8 +143,8 @@ class ListDirectoryTool(BaseFileTool):
 
         Returns:
             BaseToolResponse: The response from the tool containing the directory contents
-        """
 
+        """
         # Get absolute path
         path = os.path.abspath(path)
 
@@ -180,6 +177,7 @@ class ListDirectoryTool(BaseFileTool):
 
         Returns:
             dict: The tool spec for the ListDirectoryTool
+
         """
         return {
             "toolSpec": {
@@ -214,7 +212,6 @@ class ReadTextFileTool(BaseFileTool):
 
     def invoke(self, *args, **kwargs) -> TextToolResponse:
         """Invokes the tool logic"""
-
         return self.read_file(*args, **kwargs)
 
     def read_file(
@@ -238,8 +235,8 @@ class ReadTextFileTool(BaseFileTool):
         Returns:
             TextToolResponse: The response from the tool containing the file
                 contents
-        """
 
+        """
         # Get absolute path
         file_path = os.path.abspath(file_path)
 
@@ -332,7 +329,6 @@ class ReadTextFilesTool(BaseFileTool):
 
     def invoke(self, *args, **kwargs) -> BaseToolResponse:
         """Invokes the tool logic"""
-
         return self.read_files(*args, **kwargs)
 
     def read_files(self, files: List[Dict]) -> BaseToolResponse:
@@ -350,8 +346,8 @@ class ReadTextFilesTool(BaseFileTool):
 
         Returns:
             BaseContentBlock: Contains one or more Text content
-        """
 
+        """
         # Final tool response
         tool_response = BaseToolResponse(
             status=ResponseStatus.SUCCESS, type=ResponseType.CONTENT
@@ -472,8 +468,8 @@ class ReadPdfInfoTool(BaseFileTool):
         Returns:
             TextToolResponse: The response from the tool containing the PDF
                 metadata
-        """
 
+        """
         # Get absolute path
         file_path = os.path.abspath(file_path)
 
@@ -550,8 +546,8 @@ class ReadPdfFileTool(BaseFileTool):
         Returns:
             TextToolResponse: The response from the tool containing the PDF
                 contents
-        """
 
+        """
         # Get absolute path
         file_path = os.path.abspath(file_path)
 
@@ -683,8 +679,7 @@ class ReadPdfFileTool(BaseFileTool):
 
 
 class ReadDocumentFileTool(BaseFileTool):
-    """
-    General purpose tool for reading pdf, csv, doc,
+    """General purpose tool for reading pdf, csv, doc,
     docx, xls, xlsx, html, txt, and md.
     """
 
@@ -699,7 +694,6 @@ class ReadDocumentFileTool(BaseFileTool):
 
     def read_document_file(self, file_path: str) -> DocumentToolResponse:
         """Reads the document and returns a DocumentToolResponse"""
-
         # Get absolute filepath
         file_path = os.path.abspath(file_path)
 
@@ -737,8 +731,7 @@ class ReadDocumentFileTool(BaseFileTool):
 
 
 class ReadImageFileTool(BaseFileTool):
-    """
-    Tool for reading image files
+    """Tool for reading image files
     """
 
     name: str = "read_image_file"
@@ -750,7 +743,6 @@ class ReadImageFileTool(BaseFileTool):
 
     def read_image_file(self, file_path: str) -> ImageToolResponse:
         """Reads the image and returns a ImageToolResponse"""
-
         # Get absolute filepath
         file_path = os.path.abspath(file_path)
 
@@ -810,8 +802,8 @@ class WriteTextFileTool(BaseFileTool):
         Returns:
             TextToolResponse: The response from the tool containing the status of
                 the write operation
-        """
 
+        """
         # Get absolute path
         file_path = os.path.abspath(file_path)
 
@@ -875,8 +867,8 @@ class RenameFileTool(BaseFileTool):
         Returns:
             TextToolResponse: The response from the tool containing the status of
                 the rename operation
-        """
 
+        """
         # Get absolute paths
         old_path = os.path.abspath(old_path)
         new_path = os.path.abspath(new_path)
@@ -938,7 +930,6 @@ class CreateDirectoriesTool(BaseFileTool):
             directory_paths (List[str]): The list of directory paths to be created
 
         """
-
         results = []
         for directory_path in directory_paths:
             # Get the absolute path to create
@@ -997,8 +988,8 @@ class FileInfoTool(BaseFileTool):
         Returns:
             TextToolResponse: The response from the tool containing the file
                 metadata
-        """
 
+        """
         # Get the absolute path
         file_path = os.path.abspath(file_path)
 
@@ -1057,12 +1048,10 @@ class SearchFilesTool(BaseFileTool):
 
     def invoke(self, *args, **kwargs) -> TextToolResponse:
         """Invokes the tool logic"""
-
         return self.search_files(*args, **kwargs)
 
     def search_files(self, directory: str, pattern: str) -> TextToolResponse:
-        """
-        Searches for a pattern within the directory and returns the list of files
+        """Searches for a pattern within the directory and returns the list of files
 
         Args:
             directory (str): The directory to search in
@@ -1071,8 +1060,8 @@ class SearchFilesTool(BaseFileTool):
         Returns:
             TextToolResponse: The response from the tool containing the list of
                 matching files
-        """
 
+        """
         # Get the absolute path
         directory = os.path.abspath(directory)
 
@@ -1147,8 +1136,8 @@ class CopyFileTool(BaseFileTool):
         Returns:
             TextToolResponse: The response from the tool containing the status of
                 the copy operation
-        """
 
+        """
         # Get absolute paths
         source_path = os.path.abspath(source_path)
         destination_path = os.path.abspath(destination_path)
@@ -1219,8 +1208,8 @@ class CopyDirectoryTool(BaseFileTool):
         Returns:
             TextToolResponse: The response from the tool containing the status of
                 the copy operation
-        """
 
+        """
         # Get absolute paths
         source_path = os.path.abspath(source_path)
         destination_path = os.path.abspath(destination_path)
@@ -1464,6 +1453,7 @@ class GetDirectoryTreeTool(BaseFileTool):
 
         Returns:
             TextToolResponse: The response containing the tree structure
+
         """
         # Get absolute path
         path = os.path.abspath(path)

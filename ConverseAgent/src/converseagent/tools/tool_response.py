@@ -26,14 +26,14 @@ class BaseToolResponse:
         content=None,
         metadata: dict = {},
     ):
-        """
-        Initializes the tool response
+        """Initializes the tool response
 
         Args:
             status (ResponseStatus): The status of the tool response
             type (ResponseType): The type of the tool response
             content (Optional[List[Dict]]): The content of the tool response.
                 Defaults to None.
+
         """
         self.status: ResponseStatus = status
         self.type: ResponseType = type
@@ -58,6 +58,7 @@ class BaseToolResponse:
 
         Args:
             content (BasicContentBlock): The content to append
+
         """
         self.content.append(content)
 
@@ -71,6 +72,7 @@ class TextToolResponse(BaseToolResponse):
         Args:
             status (ResponseStatus): A ResponseType enum value
             text (str): The text value
+
         """
         super().__init__(status, type=ResponseType.CONTENT)
 
@@ -87,8 +89,8 @@ class DocumentToolResponse(BaseToolResponse):
             status (ResponseStatus): A ResponseType enum value
             uri (str): The uri of the document. Must start with
                 s3:// or file://
-        """
 
+        """
         super().__init__(status, type=ResponseType.CONTENT)
 
         self.append_content(DocumentContentBlock(uri=uri, metadata=metadata))
@@ -104,8 +106,8 @@ class ImageToolResponse(BaseToolResponse):
             status (ResponseStatus): A ResponseType enum value
             uri (str) The uri of the image. Must start with
                 s3:// or file://
-        """
 
+        """
         super().__init__(status, type=ResponseType.CONTENT)
 
         self.append_content(ImageContentBlock(uri=uri, metadata=metadata))

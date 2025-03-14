@@ -24,6 +24,8 @@ logger = setup_logger(__name__)
 
 
 class BedrockModel(BaseChatModel):
+    """Represents a Bedrock model."""
+
     bedrock_model_id: str = Field(description="The Bedrock model to use")
     client: Any = Field(default=None, description="The boto3 bedrock-runtime client")
     timeout: int = Field(
@@ -32,11 +34,13 @@ class BedrockModel(BaseChatModel):
     )
 
     def model_post_init(self, *args, **kwargs) -> None:
+        """Configure Boto3 bedrock-runtime client."""
         # Initialize Bedrock runtime client
         config = Config(read_timeout=self.timeout)
         self.client = boto3.client("bedrock-runtime", config=config)
 
     def invoke(self, model_request: ModelRequest) -> ModelResponse:
+        """Invoke the model with the given request."""
         # Build params
         model_request_dict = self._convert_model_request(model_request)
 
@@ -45,8 +49,7 @@ class BedrockModel(BaseChatModel):
         return self._parse_model_response(response)
 
     def _convert_model_request(self, model_request: ModelRequest) -> Dict[str, Any]:
-        """Format the ModelRequest to the model-specific request format"""
-
+        """Format the ModelRequest to the model-specific request format."""
         # Base model request dict
         model_request_dict: Dict[str, Any] = {
             "modelId": self.bedrock_model_id,
@@ -79,6 +82,7 @@ class BedrockModel(BaseChatModel):
 
     @with_exponential_backoff()
     def _invoke(self, **kwargs) -> Dict[str, Any]:
+        """Invoke the model with the formatted request."""
         try:
             response = self.client.converse(**kwargs)
 
@@ -103,7 +107,7 @@ class BedrockModel(BaseChatModel):
         return response
 
     def _parse_model_response(self, response: Dict) -> ModelResponse:
-        """Parses the Converse API response into ModelResponse"""
+        """Parse the API request into a ModelResponse."""
         content: List[AssistantContentBlock] = []
         stop_reason = response["stopReason"]
 

@@ -25,16 +25,22 @@ class ImageContentBlock(BaseAttachmentContentBlock):
     Raises:
         ValueError: If the file extension is not in the supported formats
             (png, jpeg, gif, webp)
+
     """
 
     type: Literal["image"] = "image"
 
-    SUPPORTED_EXTENSIONS: ClassVar[set] = {"png", "jpeg", "jpg", "gif", "webp"}
+    SUPPORTED_EXTENSIONS: ClassVar[Dict[str, str]] = {
+        "png": "image/png",
+        "jpeg": "image/jpeg",
+        "jpg": "image/jpeg",
+        "gif": "image/gif",
+        "webp": "image/webp",
+    }
 
     @field_validator("extension")
     def validate_extension(cls, v) -> str:
-        """
-        Validate the file extension.
+        """Validate the file extension.
 
         Args:
             v (str): The file extension.
@@ -44,17 +50,21 @@ class ImageContentBlock(BaseAttachmentContentBlock):
 
         Raises:
             ValueError: If the file extension is not supported.
-        """
 
-        if v not in cls.SUPPORTED_EXTENSIONS:
+        """
+        if v not in cls.SUPPORTED_EXTENSIONS.keys():
             error_msg = (
                 f"File extension '{v}' is not supported. "
-                f"Supported extensions are: {', '.join(sorted(cls.SUPPORTED_EXTENSIONS))}"
+                f"Supported extensions are: {', '.join(sorted(cls.SUPPORTED_EXTENSIONS.keys()))}"
             )
             logger.error(error_msg)
             raise ValueError(error_msg)
 
         return v
+
+    @property
+    def mime_type(self):
+        return self.SUPPORTED_EXTENSIONS[self.extension]
 
     def format(self) -> Dict[str, Dict[str, Union[str, Dict[str, bytes]]]]:
         """Format the image content block to converse format.
@@ -68,6 +78,7 @@ class ImageContentBlock(BaseAttachmentContentBlock):
 
         Raises:
             ValueError: If the extension is not set for the document content block
+
         """
         if isinstance(self.extension, str):
             if self.extension.lower() == "jpg":

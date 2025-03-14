@@ -16,6 +16,7 @@ class ReasoningContentBlock(BaseContentBlock):
         ```
             thinking_block = ThinkingContentBlock(thinking="The assistant thinking here")
         ```
+
     """
 
     type: Literal["thinking"] = "thinking"
@@ -30,6 +31,7 @@ class ReasoningContentBlock(BaseContentBlock):
         Returns:
             Dict[str, str]: A dictionary containing:
                 - text: str - The text content
+
         """
         return {
             "reasoningContent": {

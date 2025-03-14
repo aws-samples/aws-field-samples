@@ -9,7 +9,6 @@ class TestAssistantMessage:
 
     def test_assistant_message(self, sample_tool_use, sample_assistant_text):
         """Tests the AssistantMessage class"""
-
         # Used in the assertion
         text_content_block = TextContentBlock(text=sample_assistant_text)
 

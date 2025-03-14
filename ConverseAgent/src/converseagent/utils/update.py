@@ -11,8 +11,8 @@ def update_callback(text: str) -> None:
 
     Args:
         text (str): The update message
-    """
 
+    """
     # Extract headline between <headline> tags
     headline_start = text.find("<headline>") + len("<headline>")
     headline_end = text.find("</headline>")

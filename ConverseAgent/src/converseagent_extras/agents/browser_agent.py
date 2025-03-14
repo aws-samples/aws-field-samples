@@ -104,10 +104,8 @@ class BrowserAgent(BaseAgent):
                 tool_result_message.append_content(content_block)
 
     async def _apost_invocation_processing(self):
+        """Executes post invocation processing steps
         """
-        Executes post invocation processing steps
-        """
-
         # Handle content block retention
         logger.info("Deleting content blocks with retention")
         self.set_messages(

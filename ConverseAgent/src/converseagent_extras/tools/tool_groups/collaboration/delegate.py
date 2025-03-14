@@ -59,7 +59,6 @@ class DelegateToolGroup(BaseToolGroup):
     @model_validator(mode="after")
     def validate_tools(self):
         """Check if tools are passed, otherwise add tools"""
-
         if not self.tools:
             self.tools = [
                 DelegateTool(
@@ -106,8 +105,8 @@ class DelegateTool(BaseTool):
 
         Args:
             delegations (List[dict]): The list of delegations to be performed
-        """
 
+        """
         results = []
         for delegation in delegations:
             result = self.invoke_delegate(
@@ -127,8 +126,7 @@ class DelegateTool(BaseTool):
     def invoke_delegate(
         self, complexity, initial_plan, objective, context
     ) -> TextContentBlock:
-        """
-        Invokes the delegate tool logic
+        """Invokes the delegate tool logic
 
         Args:
             complexity (str): The complexity of the task.
@@ -138,8 +136,8 @@ class DelegateTool(BaseTool):
 
         Returns:
             The response from the agent
-        """
 
+        """
         if complexity == "simple":
             bedrock_model_id = self.simple_model_id
         elif complexity == "complex":

@@ -31,7 +31,6 @@ class WebRetrieverToolGroup(BaseToolGroup):
     @model_validator(mode="after")
     def validate_tools(self):
         """Check if tools are passed, otherwise add tools"""
-
         if not self.tools:
             self.tools = [RetrieveUrlTool(metadata=self.metadata)]
 
@@ -40,7 +39,6 @@ class WebRetrieverToolGroup(BaseToolGroup):
     @classmethod
     def get_tool_group_spec(cls):
         """Returns the tool group spec"""
-
         return {
             "toolGroupSpec": {
                 "name": cls.model_fields["name"].default,
@@ -58,12 +56,10 @@ class RetrieveUrlTool(BaseTool):
 
     def invoke(self, *args, **kwargs) -> BaseToolResponse:
         """Invokes the tool logic"""
-
         return self.retrieve_urls(*args, **kwargs)
 
     def retrieve_url(self, url, markdown=True) -> TextContentBlock:
         """Retrieves the given url"""
-
         # Common headers to avoid HTTP errors and mimic a real browser request
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -97,6 +93,7 @@ class RetrieveUrlTool(BaseTool):
 
         Args:
             urls (list): A list of URLs to retrieve
+
         """
         contents = []
         for url in urls:

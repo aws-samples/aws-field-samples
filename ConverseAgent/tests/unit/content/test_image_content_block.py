@@ -5,8 +5,7 @@ from converseagent.content import ImageContentBlock  # type: ignore
 
 class TestImageContentBlock:
     def test_image_content_block(self, sample_image):
-        """
-        Test the ImageContentBlock class.
+        """Test the ImageContentBlock class.
         """
         # Create a ImageContentBlock instance with a sample document
         test_image_content_block = ImageContentBlock(uri=sample_image["uri"])
@@ -17,24 +16,21 @@ class TestImageContentBlock:
         assert isinstance(test_image_content_block, ImageContentBlock)
 
     def test_image_content_block_invalid_uri(self):
-        """
-        Test the ImageContentBlock class with an invalid URI.
+        """Test the ImageContentBlock class with an invalid URI.
         """
         # Test creating a ImageContentBlock instance with an invalid URI
         with pytest.raises(ValueError):
             ImageContentBlock(uri="invalid_uri")
 
     def test_image_content_block_missing_uri(self):
-        """
-        Test the ImageContentBlock class with a missing URI.
+        """Test the ImageContentBlock class with a missing URI.
         """
         # Test creating a ImageContentBlock instance with a missing URI
         with pytest.raises(ValueError):
             ImageContentBlock()
 
     def test_document_converse_format(self, sample_image):
-        """
-        Test the converse_format method of the ImageContentBlock class.
+        """Test the converse_format method of the ImageContentBlock class.
         """
         # Create a ImageContentBlock instance with a sample document
         test_image_content_block = ImageContentBlock(uri=sample_image["uri"])
@@ -50,10 +46,8 @@ class TestImageContentBlock:
         assert test_image_content_block.format() == converse_format
 
     def test_content_bytes_only(self, sample_image):
+        """Test for ensuring filename or name is provided and extension is provided.
         """
-        Test for ensuring filename or name is provided and extension is provided.
-        """
-
         with open(sample_image["uri"][7:], "rb") as f:
             content_bytes = f.read()
 
@@ -66,8 +60,7 @@ class TestImageContentBlock:
             ImageContentBlock(content_bytes=content_bytes)
 
     def test_serialization(self, sample_image):
-        """
-        Test the serialization of the ImageContentBlock class.
+        """Test the serialization of the ImageContentBlock class.
         """
         # Create a ImageContentBlock instance with a sample document
         test_image_content_block = ImageContentBlock(uri=sample_image["uri"])

@@ -40,6 +40,23 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
+lint.select = [
+    "D",  # pydocstyle rules for docstring linting
+]
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.bandit.assert_used]
 skips = ["*/test_*.py", "*test.py"]
+
+[tool.lint.pydocstyle]
+# Choose a docstring convention
+convention = "google" 

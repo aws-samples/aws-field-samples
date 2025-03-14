@@ -3,11 +3,10 @@ from converseagent.messages import AssistantMessage, UserMessage
 
 
 class TestBaseMemory:
-    "Test the BaseMemory Class"
+    """Test the BaseMemory Class"""
 
     def test_append(self):
         """Tests the append method"""
-
         memory = BaseMemory()
         user_message = UserMessage(text="Hi")
         memory.append(message=user_message)
@@ -16,7 +15,6 @@ class TestBaseMemory:
 
     def test_get_converse_messages(self):
         """Tests the get_converse_messages method"""
-
         memory = BaseMemory()
         user_message = UserMessage(text="Hi")
         memory.append(message=user_message)
@@ -25,7 +23,6 @@ class TestBaseMemory:
 
     def test_clear_messages(self):
         """Tests the clear method"""
-
         memory = BaseMemory()
         user_message = UserMessage(text="Hi")
         memory.append(message=user_message)
@@ -43,7 +40,6 @@ class TestBaseMemory:
         """Tests to see if the model serializes correctly with both
         user and assistant messages present.
         """
-
         memory = BaseMemory()
         user_message = UserMessage(text="Hi")
         memory.append(message=user_message)

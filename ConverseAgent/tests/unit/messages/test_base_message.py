@@ -7,7 +7,6 @@ class TestBaseMessage:
 
     def test_base_message(self):
         """Tests the BaseMessage class"""
-
         text_block = TextContentBlock(text="Hello, world!")
         text_block_2 = TextContentBlock(text="Hello, world again!")
         message = BaseMessage(role="user", content=[text_block, text_block_2])
@@ -17,7 +16,6 @@ class TestBaseMessage:
 
     def test_base_message_append_content(self):
         """Tests the BaseMessage class"""
-
         text_block = TextContentBlock(text="Hello, world!")
         text_block_2 = TextContentBlock(text="Hello, world again!")
 

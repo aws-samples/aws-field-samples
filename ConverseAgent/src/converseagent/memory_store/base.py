@@ -13,6 +13,7 @@ class BaseMemoryStore(BaseModel):
 
     Attributes:
         memory_index (Dict[str, BaseMemory]): The dict containing the BaseMemory objects
+
     """
 
     memory_index: Dict[str, BaseMemory] = Field(default_factory=dict)
@@ -25,8 +26,8 @@ class BaseMemoryStore(BaseModel):
 
         Returns:
             BaseMemory: the BaseMemory object
-        """
 
+        """
         if session_id in self.memory_index:
             return self.memory_index[session_id]
         else:
@@ -38,5 +39,6 @@ class BaseMemoryStore(BaseModel):
         Args:
             session_id (str): The session id for the memory
             memory (BaseMemory): The memory to save
+
         """
         self.memory_index.update({session_id: memory})

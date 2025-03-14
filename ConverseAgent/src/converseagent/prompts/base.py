@@ -141,17 +141,16 @@ NEXT_STEP_PROMPT_TEMPLATE = """
 
 
 class BasePromptTemplate:
-    """
-    Base class for prompt templates
+    """Base class for prompt templates
     """
 
     def __init__(self, template):
-        """
-        Initializes the prompt template
+        """Initializes the prompt template
 
         Args:
             template (List | str): A list of strings or a string containing
                 the prompt template
+
         """
         if isinstance(template, str):
             self.template = [template]

@@ -38,7 +38,7 @@ from converseagent.tools.tool_response import (
 from converseagent.tools.base import BaseToolGroup, BaseTool
 from converseagent.models.base import BaseChatModel
 from converseagent.utils.errors import ContextWindowExceeded, MaxIterationsExceeded
-from converseagent.models.config import InferenceConfig
+from converseagent.models.inference_config import InferenceConfig
 from asyncio import Task
 from .base_prompts import DEFAULT_SYSTEM_MESSAGE
 from enum import Enum
@@ -53,28 +53,15 @@ DEFAULT_INFERENCE_CONFIG: InferenceConfig = InferenceConfig(
 
 
 class HandleStopResult(Enum):
+    """Handle stop result enum."""
+
     CONTINUE = "continue"
     END_TURN = "end_turn"
     ERROR = "error"
 
 
 class BaseAgent(BaseModel):
-    """Base class for agents
-
-    Attributes:
-        client (Boto3.client): Bedrock-runtime client
-        session_id (str):
-        bedrock_model_id (str): ID of the model to use
-        memory (BaseMemory, optional): Memory object to store
-            conversation history. Defaults to BaseMemory().
-        invocation_history (InvocationHistory, optional): Object to
-            track API invocations. Defaults to InvocationHistory().
-        name (str, optional): Name for the agent. Defaults to None.
-        system_prompt_template (str, optional): System prompt template.
-            Defaults to None.
-        requests_per_minute_limit (int, optional): Maximum requests per
-            minute. Defaults to None.
-    """
+    """Base class for agents."""
 
     model: BaseChatModel = Field(description="The model to use")
 
@@ -104,7 +91,8 @@ class BaseAgent(BaseModel):
     )
 
     system_message: SystemMessage = Field(
-        default=DEFAULT_SYSTEM_MESSAGE, description="The system message for the agent"
+        default=DEFAULT_SYSTEM_MESSAGE,
+        description="The system message to use with the agent",
     )
 
     requests_per_minute_limit: int | None = Field(
@@ -130,6 +118,7 @@ class BaseAgent(BaseModel):
     )
 
     def model_post_init(self, *args, **kwargs) -> None:
+        """Create memory if not found in the memory store."""
         # Load from memory store, if not found in memory store
         if self.session_id and self.memory_store:
             try:
@@ -143,20 +132,21 @@ class BaseAgent(BaseModel):
     def invoke(
         self,
         user_message: UserMessage | str,
-        system_message: SystemMessage | str = DEFAULT_SYSTEM_MESSAGE,
+        system_message: SystemMessage | str | None = None,
         inference_config: InferenceConfig = DEFAULT_INFERENCE_CONFIG,
         max_iterations: int = 10,
         additional_model_request_fields: Dict[str, Any] = {},
         update_callback: Callable | None = None,
         verbose: bool = False,
     ) -> Dict[str, Any]:
-        """Invokes the agent
+        """Invoke the agent.
 
         Args:
             user_message (UserMessage | str): A UserMessage object or string.
                 If string, it will be converted to a UserMessage object.
-            system_message (System Message | str): A SystemMessage object or string.
-                if string, it will be converted to a SystemMessage object.
+            system_message (System Message | str | None): A SystemMessage object or string.
+                if string, it will be converted to a SystemMessage object. Defaults
+                to None which will load the agent's system message.
             inference_config (InferenceConfig): An InferenceConfig object.
             max_iterations (int): Maximum number of iterations. Default=10
             additional_model_request_fields (Dict | None): Additional request fields
@@ -166,8 +156,8 @@ class BaseAgent(BaseModel):
             verbose (bool): If set to True, logging level is INFO otherwise ERROR
         Returns:
             Dict[str, any]: A dict containing the response
-        """
 
+        """
         # Set logging level
         self._set_logging_level(verbose)
 
@@ -176,12 +166,11 @@ class BaseAgent(BaseModel):
 
         logger.info("Starting agent turn")
 
-        # For convenience, convert string input to UserMessage
-        if isinstance(user_message, str):
-            user_message = UserMessage(text=user_message)
+        # Setup the user message
+        user_message = self._handle_user_message(user_message)
 
-        if isinstance(system_message, str):
-            system_message = SystemMessage(text=system_message)
+        # Setup the system message
+        system_message = self._handle_system_message(system_message)
 
         # Append the provided UserMessage to the memory
         self._append_memory(message=user_message)
@@ -210,7 +199,7 @@ class BaseAgent(BaseModel):
                 additional_model_request_fields=additional_model_request_fields,
             )
 
-            ## Model invocation
+            # Model invocation
             model_response: ModelResponse = self._invoke_model(model_request)
 
             # Update the invocation history
@@ -222,7 +211,7 @@ class BaseAgent(BaseModel):
             # (Optional) Execute any post-invocation processing
             self._post_invocation_processing()
 
-            ## Stop Reason Handling
+            # Stop Reason Handling
             stop_result = self._handle_stop_reason(model_response=model_response)
 
             # (Optional) Execute any final processing
@@ -250,20 +239,21 @@ class BaseAgent(BaseModel):
     async def ainvoke(
         self,
         user_message: UserMessage | str,
-        system_message: SystemMessage = DEFAULT_SYSTEM_MESSAGE,
+        system_message: SystemMessage | str | None = None,
         inference_config: InferenceConfig = DEFAULT_INFERENCE_CONFIG,
         max_iterations: int = 10,
         additional_model_request_fields: Dict[str, Any] = {},
         update_callback: Callable | None = None,
         verbose: bool = False,
     ) -> Dict[str, Any]:
-        """Invokes the agent
+        """Invoke the agent.
 
         Args:
             user_message (UserMessage | str): A UserMessage object or string.
                 If string, it will be converted to a UserMessage object.
-            system_message (System Message | str): A SystemMessage object or string.
-                if string, it will be converted to a SystemMessage object.
+            system_message (System Message | str | None): A SystemMessage object or string.
+                if string, it will be converted to a SystemMessage object. Defaults
+                to None which will load the agent's system message.
             inference_config (InferenceConfig): An InferenceConfig object.
             max_iterations (int): Maximum number of iterations. Default=10
             additional_model_request_fields (Dict | None): Additional request fields
@@ -273,8 +263,8 @@ class BaseAgent(BaseModel):
             verbose (bool): If set to True, logging level is INFO otherwise ERROR
         Returns:
             Dict[str, any]: A dict containing the response
-        """
 
+        """
         # Set logging level
         self._set_logging_level(verbose)
 
@@ -283,9 +273,11 @@ class BaseAgent(BaseModel):
 
         logger.info("Starting agent turn")
 
-        # For convenience, convert string input to UserMessage
-        if isinstance(user_message, str):
-            user_message = UserMessage(text=user_message)
+        # Setup the user message
+        user_message = self._handle_user_message(user_message)
+
+        # Setup the system message
+        system_message = self._handle_system_message(system_message)
 
         # Append the provided UserMessage to the memory
         self._append_memory(message=user_message)
@@ -352,51 +344,49 @@ class BaseAgent(BaseModel):
         return stop_result
 
     def get_invocation_history(self) -> List[BaseInvocationLog]:
-        """Returns the invocation history of the agent."""
+        """Return the invocation history of the agent."""
         return self.invocation_history.get_history()
 
     def get_cumulative_token_count(self) -> Dict[str, int]:
-        """Returns the cumulative token count."""
+        """Return the cumulative token count."""
         return self.invocation_history.get_cumulative_token_count()
 
     def get_converse_messages(self) -> List[Dict[str, Any]]:
-        """Returns the messages in Converse format"""
-
+        """Return the messages in Converse format."""
         return self.memory.get_converse_messages()
 
     def get_messages(self) -> List[Message]:
-        """Returns the messages as UserMessage and AssistantMessage list"""
-
+        """Return the messages as UserMessage and AssistantMessage list."""
         return self.memory.get_messages()
 
     def set_messages(self, messages: List[Message]):
-        """Sets the messages list of the agent"""
+        """Set the messages list of the agent."""
         self.memory.set_messages(messages)
 
     def get_tools(self) -> List[BaseTool]:
-        """Returns the tools associated with the agent"""
-
+        """Return the tools associated with the agent."""
         return self.tools
 
     def clear_memory(self) -> None:
-        """Clears the memory of the agent."""
+        """Clear the memory of the agent."""
         self.memory.clear()
 
     def add_tool(self, tool: BaseTool):
-        """Adds a tool to the agent
+        """Add tool to the agent.
 
         Args:
             tool (BaseTool): A Tool object
+
         """
         self.tools.append(tool)
 
     def add_tool_group(self, tool_group: BaseToolGroup):
-        """Adds tools from a tool group to the agent
+        """Add tools from a tool group to the agent.
 
         Args:
             tool_group (ToolGroup): A ToolGroup object
-        """
 
+        """
         # Adds all of the tools under a tool group
 
         if tool_group.tools:
@@ -415,16 +405,17 @@ class BaseAgent(BaseModel):
             raise Exception("Tool group has no tools.")
 
     def add_tool_groups(self, tool_groups):
-        """Adds tool groups to the agent
+        """Add tool groups to the agent.
 
         Args:
             tool_groups (List[ToolGroup]): A list of ToolGroup objects
+
         """
         for tool_group in tool_groups:
             self.add_tool_group(tool_group)
 
     def clear_tools(self):
-        "Clears all tools associated"
+        """Clear all tools associated with the agent."""
         self.tools = []
 
     def _invoke_model(self, model_request: ModelRequest) -> ModelResponse:
@@ -453,8 +444,55 @@ class BaseAgent(BaseModel):
 
         return model_response
 
+    def _handle_user_message(
+        self, user_message: Union[str, UserMessage]
+    ) -> UserMessage:
+        """Handle user message processing.
+
+        This method processes the user message input, converting string messages
+        to UserMessage objects.
+
+        Args:
+            user_message (Union[str, UserMessage]): The input user message, either
+                as a string or UserMessage object.
+
+        Returns:
+            UserMessage: The processed user message.
+
+        Raises:
+            TypeError: If user_message is None or not a string or UserMessage.
+
+        """
+        if isinstance(user_message, str):
+            return UserMessage(text=user_message)
+
+        if isinstance(user_message, UserMessage):
+            return user_message
+
+    def _handle_system_message(self, system_message) -> SystemMessage:
+        """Handle system message processing.
+
+        This method processes the system message input, converting string messages
+        to SystemMessage objects and falling back to the default system message
+        when none is provided.
+
+        Args:
+            system_message (Union[str, SystemMessage, None]): The input system message.
+
+        Returns:
+            SystemMessage: The processed system message.
+
+        """
+        if system_message is None:
+            return self.system_message
+
+        if isinstance(system_message, str):
+            return SystemMessage(text=system_message)
+
+        return system_message
+
     def _update_invocation_log(self, model_response: ModelResponse) -> None:
-        """Appends an invocation log to the invocation history"""
+        """Append an invocation log to the invocation history."""
         logger.info("Logging invocation to invocation history")
         invocation_log = BaseInvocationLog(
             response=model_response, input_messages=self.get_messages()
@@ -462,8 +500,7 @@ class BaseAgent(BaseModel):
         self.invocation_history.append(log=invocation_log)
 
     def _append_memory(self, message: Message) -> None:
-        """Appends to memory and saves to the memory store"""
-
+        """Append to memory and save to the memory store."""
         logger.info(f"Appending {message.role} message to memory")
         self.memory.append(message)
 
@@ -476,7 +513,8 @@ class BaseAgent(BaseModel):
     def _handle_stop_reason(
         self,
         model_response: ModelResponse,
-    ):
+    ) -> Dict[str, Any]:
+        """Handle the stop reason from the model response."""
         logger.info("Handling stop reason: %s", model_response.stop_reason)
         match model_response.stop_reason:
             case StopReason.TOOL_USE:
@@ -547,8 +585,7 @@ class BaseAgent(BaseModel):
         return result
 
     def _get_tool_config(self) -> Dict[str, List[Any]] | None:
-        "Builds the tool_config for Converse"
-
+        """Build the tool_config for Converse."""
         if len(self.tools) > 0:
             tool_list = []
             for tool in self.tools:
@@ -567,16 +604,15 @@ class BaseAgent(BaseModel):
             handler.setLevel(log_level)
 
     def _handle_tool_use(self, model_response: ModelResponse):
-        """
-        Handles tool use
+        """Handle tool use.
 
         Args:
-            message (dict): The assistant message from Converse API
+            model_response (ModelResponse): The model response.
 
         Returns:
             dict: The tool result message
-        """
 
+        """
         # The message that will be returned
         tool_result_message = UserMessage()
 
@@ -653,21 +689,21 @@ class BaseAgent(BaseModel):
 
         return {"status": HandleStopResult.CONTINUE}
 
-    async def _ahandle_tool_use(self, model_response: ModelResponse):
-        """
-        Handles tool use
+    async def _ahandle_tool_use(self, model_response: ModelResponse) -> Dict[str, Any]:
+        """Handle tool use asynchronously. This will execute multiple tool uses concurrently.
 
         Args:
-            message (dict): The assistant message from Converse API
+            model_response (ModelResponse): The model response
 
         Returns:
-            dict: The tool result message
+            Dict[str, Any]: The tool result message
+
         """
 
         async def ainvoke_tool(
             tool_use_id: str, tool: BaseTool, tool_input: dict
         ) -> Dict[str, Any]:
-            """Invokes the tool asynchronously"""
+            """Invoke the tool asynchronously."""
             try:
                 tool_response = await tool.ainvoke(**tool_input)
                 return {"tool_use_id": tool_use_id, "tool_response": tool_response}
@@ -759,14 +795,16 @@ class BaseAgent(BaseModel):
 
         return {"status": HandleStopResult.CONTINUE}
 
-    def _handle_end_turn(self, model_response: ModelResponse):
-        """
-        Handles the end turn stop reason
+    def _handle_end_turn(self, model_response: ModelResponse) -> Dict[str, Any]:
+        """Handle the end turn stop reason.
 
         Args:
-            message (dict): The assistant message from Converse API
-        """
+            model_response (ModelResponse): The model response
 
+        Returns:
+            Dict[str, Any]: The result after handling the end turn
+
+        """
         logger.info("Checking for final response")
 
         # Return all of the text
@@ -808,9 +846,13 @@ class BaseAgent(BaseModel):
             return {"status": HandleStopResult.CONTINUE}
 
     def _handle_context_window_exceeded(self) -> Dict[str, Any]:
-        """Handles the Input too long exception
+        """Handle the Input too long exception.
 
         Override this function to handle this
+
+        Returns:
+            Dict[str, Any]: Dict containing the error result.
+
         """
         return {
             "status": HandleStopResult.ERROR,
@@ -820,9 +862,13 @@ class BaseAgent(BaseModel):
     def _handle_max_output_tokens_exceeed(
         self, model_response: ModelResponse
     ) -> Dict[str, Any]:
-        """Handles the max output tokens exceeded stop reason
+        """Handle the max output tokens exceeded stop reason.
 
         Override this funciton to handle this
+
+        Returns:
+            Dict[str, Any]: The dict containing the error result.
+
         """
         return {
             "status": HandleStopResult.ERROR,
@@ -830,9 +876,16 @@ class BaseAgent(BaseModel):
         }
 
     def _handle_stop_sequence(self, model_response: ModelResponse) -> Dict[str, Any]:
-        """Handles the stop sequence stop reason
+        """Handle the stop sequence stop reason.
 
         Override this function to handle this
+
+        Args:
+            model_response (ModelResponse): The model response
+
+        Returns:
+            Dict[str, Any]: Returns an end turn result by default
+
         """
         return {
             "status": HandleStopResult.END_TURN,
@@ -846,9 +899,20 @@ class BaseAgent(BaseModel):
     def _handle_guardrail_intervened(
         self, model_response: ModelResponse
     ) -> Dict[str, Any]:
-        """Handles the guardrail intervened stop reason
+        """Handle the guardrail intervened stop reason.
 
-        Override this function to handle this
+        This method processes cases where a guardrail has intervened in the model response.
+        Override this function to implement custom handling behavior.
+
+        Args:
+            model_response (ModelResponse): The model response object containing
+                the intervention details.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing:
+                - status (HandleStopResult): The END_TURN status
+                - body (dict): Contains the intervention message
+
         """
         return {
             "status": HandleStopResult.END_TURN,
@@ -856,9 +920,20 @@ class BaseAgent(BaseModel):
         }
 
     def _handle_content_filtered(self, model_response: ModelResponse) -> Dict[str, Any]:
-        """Handles the content filetered stop reason
+        """Handle the content filtered stop reason.
 
-        Override this function to handle this
+        This method processes cases where content has been filtered by the model.
+        Override this function to implement custom handling behavior.
+
+        Args:
+            model_response (ModelResponse): The model response object containing
+                the filtered content details.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing:
+                - status (HandleStopResult): The ERROR status
+                - body (dict): Contains the content filtered message
+
         """
         return {
             "status": HandleStopResult.ERROR,
@@ -866,35 +941,62 @@ class BaseAgent(BaseModel):
         }
 
     def _handle_max_iterations_exceeded(self):
-        """Handles when max iterations exceeded
+        """Handle when maximum iterations have been exceeded.
 
-        Override this function to handle this
+        This method is called when the conversation exceeds the maximum allowed
+        iterations. Override this function to implement custom handling behavior.
+
+        Raises:
+            MaxIterationsExceeded: When the maximum number of conversation
+                iterations has been exceeded.
+
         """
         logger.error("Max iterations exceeded")
         raise MaxIterationsExceeded()
 
     def _pre_invocation_processing(self):
-        """Override this function to do any processing before an iteration"""
+        """Execute processing steps before an iteration.
+
+        This method is called before each iteration to perform any necessary
+        pre-processing steps. Override this function to implement custom
+        pre-invocation behavior.
+        """
         logger.info("Executing pre-invocation steps")
 
         pass
 
     def _post_invocation_processing(self):
-        """Override this function to do any processing after an iteration"""
+        """Execute processing steps after an iteration.
+
+        This method is called after each iteration to perform any necessary
+        post-processing steps. By default, it calls the update_callback if one
+        is configured.
+
+        The update_callback receives the update_message from the last message
+        in the conversation history.
+        """
         logger.info("Executing post-invocation steps")
 
         if self.update_callback:
             self.update_callback(self.get_messages()[-1].update_message)
 
     def _final_processing(self):
-        """Override this funciton to do any processing after completing an iteration"""
+        """Execute final processing steps after completing an iteration.
+
+        This method is called after all steps in the iteration are completed.
+        Override this method to implement custom final processing behavior.
+        By default, this method does nothing.
+        """
         logger.info("Executing final steps")
 
         pass
 
     def _handle_completed_iteration(self):
-        """Executes when an agent iteration is completed.
-        By default, it will sleep if rate limited otherwise continue
+        """Handle rate limiting after a completed iteration.
+
+        This method manages rate limiting between iterations. If a requests per minute
+        limit is set, it will pause execution for the appropriate duration to maintain
+        the rate limit.
         """
         logger.info("Executing completed iteration steps")
         if self.requests_per_minute_limit:
@@ -904,31 +1006,44 @@ class BaseAgent(BaseModel):
             sleep(sleep_time)
 
     async def _apre_invocation_processing(self):
-        """Executes any steps before invocation asynchronously
+        """Execute asynchronous pre-invocation processing steps.
 
-        Override this function to do any processing before an iteration"""
+        This method is called before each iteration to perform any necessary
+        asynchronous pre-processing. Override this method to implement custom
+        pre-invocation behavior.
+        """
         logger.info("Executing pre-invocation steps")
         pass
 
     async def _apost_invocation_processing(self):
-        """Executes any steps after invocation asynchronously
-        Override this function to do any processing after an iteration"""
+        """Execute asynchronous post-invocation processing steps.
+
+        This method is called after each iteration to perform any necessary
+        asynchronous post-processing. Override this method to implement custom
+        post-invocation behavior. If an update callback is set, it will be called
+        with the latest message update.
+        """
         logger.info("Executing post-invocation steps")
 
         if self.update_callback:
             self.update_callback(self.get_messages()[-1].update_message)
 
     async def _afinal_processing(self):
-        """Executes any steps after all steps in the agent are completed asynchronously
+        """Execute asynchronous final processing steps.
 
-        Override this funciton to do any processing after completing an iteration"""
+        This method is called after all agent steps are completed to perform any
+        necessary final processing. Override this method to implement custom
+        completion behavior.
+        """
         logger.info("Executing final steps")
         pass
 
     async def _ahandle_completed_iteration(self):
-        """Executes when an agent iteration is completed.
+        """Handle rate limiting after a completed asynchronous iteration.
 
-        By default, it will sleep if rate limited otherwise continue
+        This method manages rate limiting between asynchronous iterations. If a
+        requests per minute limit is set, it will pause execution for the appropriate
+        duration to maintain the rate limit.
         """
         logger.info("Completed iteration. Continuing loop...")
         if self.requests_per_minute_limit:

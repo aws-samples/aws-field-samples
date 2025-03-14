@@ -25,6 +25,7 @@ class BaseChatModel(BaseModel, ABC):
 
         Returns:
             ModelResponse: The response from the model
+
         """
         pass
 
@@ -42,6 +43,7 @@ class BaseChatModel(BaseModel, ABC):
 
         Returns:
             ModelResponse: The response from the model
+
         """
         loop = asyncio.get_running_loop()
         model_response = await loop.run_in_executor(None, self.invoke, model_request)

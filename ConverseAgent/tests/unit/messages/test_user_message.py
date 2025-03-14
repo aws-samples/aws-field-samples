@@ -7,7 +7,6 @@ class TestUserMessage:
 
     def test_user_message(self):
         """Tests the UserMessage class"""
-
         text_block = TextContentBlock(text="Hello, world!")
         text_block_2 = TextContentBlock(text="Hello, world again!")
 
@@ -26,7 +25,6 @@ class TestUserMessage:
 
     def test_user_message_append_content(self):
         """Tests the UserMessage append_content method"""
-
         text_block = TextContentBlock(text="Hello, world!")
         text_block_2 = TextContentBlock(text="Hello, world again!")
 
@@ -39,7 +37,6 @@ class TestUserMessage:
 
     def test_user_message_serialization(self):
         """Tests the user message serialization"""
-
         message = UserMessage(text="Hi")
 
         message_json = message.model_dump_json()

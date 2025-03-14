@@ -1,14 +1,16 @@
+"""Tests the Bedrock model."""
+
 from converseagent.messages import SystemMessage, UserMessage
 from converseagent.models.bedrock import BedrockModel  # type: ignore
-from converseagent.models.config import InferenceConfig
+from converseagent.models.inference_config import InferenceConfig
 from converseagent.models.request import ModelRequest
 
 
 class TestBedrockModel:
-    """Tests the BedrockModel class"""
+    """Test the BedrockModel class."""
 
     def test_invoke(self, text_model_id):
-        """Tests the converse method of the BedrockModel class"""
+        """Test the converse method of the BedrockModel class."""
         model = BedrockModel(bedrock_model_id=text_model_id)
 
         user_message = UserMessage(text="Hi, how are you?")

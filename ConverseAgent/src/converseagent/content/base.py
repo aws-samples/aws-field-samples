@@ -36,6 +36,7 @@ class BaseContentBlock(BaseModel):
             def format(self) -> Dict[str, any]:
                 return {"text": self.text}
         ```
+
     """
 
     type: str = Field(description="The type of content block")
@@ -66,6 +67,7 @@ class BaseContentBlock(BaseModel):
                 return {
                     "text": self.text
                 }
+
         """
         raise NotImplementedError("Subclasses must implement this method")
 
@@ -106,6 +108,7 @@ class BaseAttachmentContentBlock(BaseContentBlock):
         validate_uri: Validates that the URI starts with file:// or s3://
         model_post_init: Initializes filename and extension from URI, sets default name,
                         and loads content
+
     """
 
     uri: str | None = Field(
@@ -143,6 +146,7 @@ class BaseAttachmentContentBlock(BaseContentBlock):
 
         Raises:
             ValueError: If neither URI nor content_bytes is provided
+
         """
         self._validate_required_inputs()
 
@@ -178,7 +182,6 @@ class BaseAttachmentContentBlock(BaseContentBlock):
 
     def _extract_filename_from_uri(self) -> None:
         """Extracts and sets filename from URI if not already set."""
-
         if self.uri and not self.filename:
             self.filename = self.uri.split("/")[-1]
 

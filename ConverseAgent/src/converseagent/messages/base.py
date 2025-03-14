@@ -13,6 +13,7 @@ class BaseMessage(BaseModel, Generic[T]):
     Attributes:
         role (str): The role of the message. Must be "user" or "assistant"
         content (List[ContentBlock]): The list of content blocks
+
     """
 
     role: Literal["user", "assistant", "system", "tool"]
@@ -24,8 +25,8 @@ class BaseMessage(BaseModel, Generic[T]):
         Returns:
             Dict[str, Union[str, List[Dict[str, Any]]]]: The dict containing
                 the converse formatted Message
-        """
 
+        """
         return {
             "role": self.role,
             "content": [block.format() for block in self.content],
@@ -36,6 +37,7 @@ class BaseMessage(BaseModel, Generic[T]):
 
         Args:
             block (BaseContentBlock): The block to append to the message
+
         """
         self.content.append(block)
 
@@ -47,3 +49,7 @@ class BaseMessage(BaseModel, Generic[T]):
 
         """
         return self.content
+
+    def get_text(self):
+        """Returns the text of the message"""
+        return "\n".join([block.text for block in self.content if block.type == "text"])

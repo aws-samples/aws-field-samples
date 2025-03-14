@@ -65,8 +65,7 @@ class BaseInvocationLog(BaseModel):
 
 
 class BaseInvocationHistory(BaseModel):
-    """
-    Tracks and manages the invocation history for agents.
+    """Tracks and manages the invocation history for agents.
     """
 
     history: List[BaseInvocationLog] = Field(
@@ -74,29 +73,29 @@ class BaseInvocationHistory(BaseModel):
     )
 
     def append(self, log: BaseInvocationLog) -> None:
-        """
-        Appends the invocation history to the history list.
+        """Appends the invocation history to the history list.
 
         Args:
             log (BaseInvocationLog): A BaseInvocationLog object
+
         """
         self.history.append(log)
 
     def get_history(self) -> List[BaseInvocationLog]:
-        """
-        Returns the invocation history.
+        """Returns the invocation history.
 
         Returns:
             list: The invocation history.
+
         """
         return self.history
 
     def get_cumulative_token_count(self) -> Dict[str, int]:
-        """
-        Calculates the total token usage based on the invocation history.
+        """Calculates the total token usage based on the invocation history.
 
         Returns:
             dict: A dictionary of the total token counts
+
         """
         total_input_tokens = 0
         total_output_tokens = 0
