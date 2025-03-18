@@ -1,8 +1,8 @@
-### ConverseSQLAgent: Building an intelligent text-to-SQL agent using Amazon Bedrock and Converse API. This is a Sample Code for a quick POC and the infrastructure can be adapted based on final implementation.
+### Converse SQL Agent: Building an intelligent text-to-SQL agent using Amazon Bedrock and Converse API. This is a Sample Code for a quick POC and the infrastructure can be adapted based on final implementation.
 
 Authors: Ross Alas, Pavan Kumar, Parag Srivastava and Abdullah Siddiqui 
 
-ConverseSQLAgent is a simple and powerful text-to-sql solution that can connect to
+Converse SQL Agent is a simple and powerful text-to-sql solution that can connect to
 different databases and queries them all through natural language. It is built using
 Amazon Bedrock, Converse API, and a custom agent implementation that enables it to
 plan, execute, and learn as you use it.
@@ -69,7 +69,7 @@ deactivate
 cd ../../
 ```
 
-3. Once bak in the working directory of your code. Create a Python virtual environment
+3. Once back in the working directory of your code. Create a Python virtual environment
 ```
 python3.11 -m venv .venv
 ```
