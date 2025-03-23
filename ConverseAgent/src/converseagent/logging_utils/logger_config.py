@@ -28,3 +28,12 @@ def setup_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
 
     return logger
+
+
+def set_logging_level(verbose: bool) -> None:
+    # Set logging level
+    log_level = logging.INFO if verbose else logging.ERROR
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
+    for handler in root_logger.handlers:
+        handler.setLevel(log_level)

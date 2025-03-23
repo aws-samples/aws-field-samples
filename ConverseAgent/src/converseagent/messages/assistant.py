@@ -35,6 +35,7 @@ class AssistantMessage(BaseMessage):
             thinking message is extracted from <thinking></thinking>.
         final_response (str): The final response extracted from the message. The
             final response is extracted from <final_response></final_response>.
+
     """
 
     role: Literal["assistant"] = "assistant"
@@ -53,7 +54,6 @@ class AssistantMessage(BaseMessage):
 
         Extracts the text from the assistant messages
         """
-
         if self.content:
             for block in self.content:
                 if isinstance(block, TextContentBlock):
@@ -84,9 +84,9 @@ class AssistantMessage(BaseMessage):
         return self
 
     def append_text_block(self, text: str):
-        """Appends a text block to the user message"""
+        """Appends a text block to the assistant message"""
         self.append_content(TextContentBlock(text=text))
 
     def append_content(self, block: AssistantContentBlock):
-        """Appends a content block to the user message"""
+        """Appends a content block to the assistant message"""
         self.content.append(block)

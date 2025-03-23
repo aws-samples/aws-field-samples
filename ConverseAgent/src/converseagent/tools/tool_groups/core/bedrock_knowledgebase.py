@@ -49,8 +49,8 @@ class BedrockKnowledgeBaseToolGroup(BaseToolGroup):
             instructions (str): The instructions to use when retrieving from the KB
             metadata (Dict[str,str], optional): Additional metadata to include
                 in the instructions for metadata filtering.
-        """
 
+        """
         self.knowledge_bases.append(
             {"knowledge_base_id": knowledge_base_id, "instructions": instructions}
         )
@@ -131,8 +131,8 @@ class RetrieveFromBedrockKb(BaseTool):
 
         Returns:
             dict: The tool spec for the tool
-        """
 
+        """
         return {
             "toolSpec": {
                 "name": self.name,

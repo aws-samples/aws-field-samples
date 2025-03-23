@@ -30,22 +30,33 @@ class DocumentContentBlock(BaseAttachmentContentBlock):
 
     type: Literal["document"] = "document"
 
-    SUPPORTED_EXTENSIONS: ClassVar[set] = {
-        "pdf",
-        "csv",
-        "doc",
-        "docx",
-        "xls",
-        "xlsx",
-        "html",
-        "txt",
-        "md",
+    # SUPPORTED_EXTENSIONS: ClassVar[set] = {
+    #     "pdf",
+    #     "csv",
+    #     "doc",
+    #     "docx",
+    #     "xls",
+    #     "xlsx",
+    #     "html",
+    #     "txt",
+    #     "md",
+    # }
+
+    SUPPORTED_EXTENSIONS: ClassVar[dict] = {
+        "pdf": "application/pdf",
+        "csv": "text/csv",
+        "doc": "application/msword",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "xls": "application/vnd.ms-excel",
+        "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "html": "text/html",
+        "txt": "text/plain",
+        "md": "text/markdown",
     }
 
     @field_validator("extension")
     def validate_extension(cls, v) -> str:
-        """
-        Validate the file extension.
+        """Validate the file extension.
 
         Args:
             v (str): The file extension.
@@ -55,20 +66,24 @@ class DocumentContentBlock(BaseAttachmentContentBlock):
 
         Raises:
             ValueError: If the file extension is not supported.
+
         """
-        if v not in cls.SUPPORTED_EXTENSIONS:
+        if v not in cls.SUPPORTED_EXTENSIONS.keys():
             error_msg = (
                 f"File extension '{v}' is not supported. "
-                f"Supported extensions are: {', '.join(sorted(cls.SUPPORTED_EXTENSIONS))}"
+                f"Supported extensions are: {', '.join(sorted(cls.SUPPORTED_EXTENSIONS.keys()))}"
             )
             logger.error(error_msg)
             raise ValueError(error_msg)
 
         return v
 
+    @property
+    def mime_type(self):
+        return self.SUPPORTED_EXTENSIONS[self.extension]
+
     def format(self) -> Dict[str, Dict[str, Union[str, Dict[str, bytes]]]]:
         """Formats the document block to Converse Format
-
 
         Returns:
             Dict[str, Dict[str, Union[str, Dict[str, bytes]]]]: A dictionary containing:
@@ -77,8 +92,8 @@ class DocumentContentBlock(BaseAttachmentContentBlock):
                     - name: str - A unique name for the document
                     - source: Dict containing the image bytes
                         - bytes: bytes - The raw image data
-        """
 
+        """
         if isinstance(self.name, str) and isinstance(self.extension, str):
             return {
                 "document": {

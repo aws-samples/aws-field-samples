@@ -38,7 +38,6 @@ class BaseTool(BaseModel, ABC):
         Default implementation that calls the synchronous invoke method.
         Override this method to provide true async implementation.
         """
-
         return self.invoke(*args, **kwargs)
 
     @abstractmethod
@@ -67,6 +66,7 @@ class BaseToolGroup(BaseModel):
 
         Args:
             tool (BaseTool): The tool to add
+
         """
         self.tools.append(tool)
 
@@ -75,6 +75,7 @@ class BaseToolGroup(BaseModel):
 
         Args:
             tools (List[BaseTool]): List of tools to add
+
         """
         for tool in tools:
             self.add_tool(tool)

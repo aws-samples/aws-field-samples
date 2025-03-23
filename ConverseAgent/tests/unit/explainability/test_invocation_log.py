@@ -33,7 +33,6 @@ class TestBaseInvocationHistory:
 
     def test_append_retrieve(self, sample_log):
         """Tests the append method"""
-
         invocation_history = BaseInvocationHistory()
         invocation_history.append(log=sample_log)
 

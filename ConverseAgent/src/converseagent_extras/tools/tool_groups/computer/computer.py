@@ -18,7 +18,7 @@ logger = setup_logger(__name__)
 
 
 class ComputerToolGroup(BaseToolGroup):
-    """Tools for controlling computer and taking screenshots"""
+    """Tools for controlling computer and taking screenshots."""
 
     name: str = "computer_tools"
     description: str = "Tools for controlling the computer and taking screenshots"
@@ -32,7 +32,7 @@ class ComputerToolGroup(BaseToolGroup):
 
     @model_validator(mode="after")
     def _validate_tools(self):
-        """Check if tools are passed, otherwise add tools"""
+        """Check if tools are passed, otherwise add tools."""
         if not self.tools:
             self.tools = [
                 MouseMoveTool(scale_factor=self.scale_factor, metadata=self.metadata),
@@ -45,6 +45,7 @@ class ComputerToolGroup(BaseToolGroup):
 
     @classmethod
     def get_tool_group_spec(cls):
+        """Return the tool group spec."""
         return {
             "toolSpec": {
                 "name": cls.name,
@@ -54,7 +55,7 @@ class ComputerToolGroup(BaseToolGroup):
 
 
 class MouseMoveTool(BaseTool):
-    """Tool to move the mouse cursor to specific coordinates"""
+    """Tool to move the mouse cursor to specific coordinates."""
 
     name: str = "mouse_move"
     description: str = "Move the mouse cursor to the specified x, y coordinates"
@@ -63,17 +64,18 @@ class MouseMoveTool(BaseTool):
     )
 
     def invoke(self, *args, **kwargs) -> TextToolResponse:
-        """Invokes the tool logic"""
+        """Invoke the tool logic."""
         return self.mouse_move(*args, **kwargs)
 
     def mouse_move(self, coordinate: tuple[int, int]) -> TextToolResponse:
-        """Moves the mouse cursor to the specified coordinates
+        """Move the mouse cursor to the specified coordinates.
 
         Args:
-            coordinates (tuple[int,int]): The x,y coordinates to move the mouse to
+            coordinate (tuple[int,int]): The x,y coordinates to move the mouse to
 
         Returns:
             TextToolResponse: Success or error message
+
         """
         try:
             # Use pyautogui to move the mouse cursor to the specified coordinates
@@ -96,6 +98,7 @@ class MouseMoveTool(BaseTool):
             )
 
     def get_tool_spec(self):
+        """Return the tool spec."""
         return {
             "toolSpec": {
                 "name": self.name,
@@ -120,7 +123,7 @@ class MouseMoveTool(BaseTool):
 
 
 class ClickTool(BaseTool):
-    """Tool to perform different types of mouse clicks at the current or specified coordinates"""
+    """Tool to perform different types of mouse clicks at the current or specified coordinates."""
 
     name: str = "click"
     description: str = (
@@ -132,19 +135,21 @@ class ClickTool(BaseTool):
     )
 
     def invoke(self, *args, **kwargs) -> TextToolResponse:
-        """Invokes the tool logic"""
+        """Invoke the tool logic."""
         return self.click(*args, **kwargs)
 
     def click(
         self, click_type: str = "left", coordinate: tuple[int, int] | None = None
     ) -> TextToolResponse:
-        """Performs the specified type of click at current position or given coordinates
+        """Click at current position or given coordinates.
+
         Args:
             click_type (str): Type of click to perform ('left_click', 'right_click', 'double_click')
-            coordinate (tuple[int, int]: The coordinate to move the mouse to and click
+            coordinate (tuple[int, int]): The coordinate to move the mouse to and click
 
         Returns:
             TextToolResponse: Success or error message
+
         """
         valid_click_types = ["left_click", "right_click", "double_click"]
 
@@ -188,6 +193,7 @@ class ClickTool(BaseTool):
             )
 
     def get_tool_spec(self):
+        """Return the tool spec."""
         return {
             "toolSpec": {
                 "name": self.name,
@@ -216,7 +222,13 @@ class ClickTool(BaseTool):
 
 
 class ScreenshotTool(BaseTool):
-    """Tool to take full page screenshots"""
+    """Represents a tool to take full page screenshots.
+
+    Currently not included as part of the tool group. As taking screenshots is handled
+    by the computer agent orchestration making this tool unnecessary.
+
+    Included for reference.
+    """
 
     name: str = "screenshot"
     description: str = "Take a full page screenshot of the entire screen. The red circle indicates current mouse position."
@@ -225,11 +237,11 @@ class ScreenshotTool(BaseTool):
     )
 
     def invoke(self, *args, **kwargs) -> BaseToolResponse:
-        """Invokes the tool logic"""
+        """Invoke the tool logic."""
         return self.take_screenshot(*args, **kwargs)
 
     def take_screenshot(self) -> BaseToolResponse:
-        """Takes a screenshot of the entire screen and draws a red circle at the current mouse position
+        """Take a screenshot of the entire screen and draws a red circle at the current mouse position.
 
         Args:
             filename (str, optional): Optional filename for the screenshot.
@@ -237,6 +249,7 @@ class ScreenshotTool(BaseTool):
 
         Returns:
             BaseToolResponse: Response containing an ImageContentBlock with the screenshot
+
         """
         try:
             # Generate a timestamp-based filename if none is provided
@@ -249,7 +262,7 @@ class ScreenshotTool(BaseTool):
             # Get the current mouse position
             mouse_x, mouse_y = pyautogui.position()
 
-            # TODO bug in pyautogui, need to be multiplied by 2
+            # Need to account for pyautogui bug (?) where it returns x and y by half
             mouse_x *= 2
             mouse_y *= 2
 
@@ -311,6 +324,7 @@ class ScreenshotTool(BaseTool):
             )
 
     def get_tool_spec(self):
+        """Return the tool spec."""
         return {
             "toolSpec": {
                 "name": self.name,
@@ -326,17 +340,19 @@ class ScreenshotTool(BaseTool):
 
 
 class TypeTool(BaseTool):
-    """Tool to perform keyboard inputs"""
+    """Tool to perform keyboard inputs."""
 
     name: str = "type"
     description: str = "Type text or press specific keyboard keys"
 
     def invoke(self, *args, **kwargs) -> TextToolResponse:
-        """Invokes the tool logic"""
+        """Invoke the tool logic."""
         return self.keyboard_input(*args, **kwargs)
 
-    def keyboard_input(self, text: str = None, key: str = None) -> TextToolResponse:
-        """Types text or presses a specific key
+    def keyboard_input(
+        self, text: str | None = None, key: str | None = None
+    ) -> TextToolResponse:
+        """Type text or press a specific key.
 
         Args:
             text (str, optional): Text to type out
@@ -344,6 +360,7 @@ class TypeTool(BaseTool):
 
         Returns:
             TextToolResponse: Success or error message
+
         """
         try:
             if text:
@@ -376,6 +393,7 @@ class TypeTool(BaseTool):
             )
 
     def get_tool_spec(self):
+        """Return the tool spec."""
         return {
             "toolSpec": {
                 "name": self.name,
@@ -400,7 +418,7 @@ class TypeTool(BaseTool):
 
 
 class ScrollTool(BaseTool):
-    """Tool to scroll the screen in different directions"""
+    """Tool to scroll the screen in different directions."""
 
     name: str = "scroll"
     description: str = (
@@ -408,11 +426,11 @@ class ScrollTool(BaseTool):
     )
 
     def invoke(self, *args, **kwargs) -> TextToolResponse:
-        """Invokes the tool logic"""
+        """Invoke the tool logic."""
         return self.scroll(*args, **kwargs)
 
     def scroll(self, direction: str, amount: int = 100) -> TextToolResponse:
-        """Scrolls the screen in the specified direction
+        """Scroll the screen in the specified direction.
 
         Args:
             direction (str): Direction to scroll ('up', 'down', 'left', 'right')
@@ -420,6 +438,7 @@ class ScrollTool(BaseTool):
 
         Returns:
             TextToolResponse: Success or error message
+
         """
         valid_directions = ["up", "down", "left", "right"]
 
@@ -453,6 +472,7 @@ class ScrollTool(BaseTool):
             )
 
     def get_tool_spec(self):
+        """Return the tool spec."""
         return {
             "toolSpec": {
                 "name": self.name,

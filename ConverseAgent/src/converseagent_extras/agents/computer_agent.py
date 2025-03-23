@@ -81,7 +81,7 @@ class ComputerAgent(BaseAgent):
         # Get the current mouse position
         mouse_x, mouse_y = pyautogui.position()
 
-        # # TODO bug in pyautogui, need to multiply by 2 get position correct
+        # Need to correct for pyautogui bug (?)
         mouse_x *= 2
         mouse_y *= 2
 
@@ -127,8 +127,7 @@ class ComputerAgent(BaseAgent):
 
 
 def calculate_scale_factor(width: int, height: int, max_dimension: int = 1366) -> float:
-    """
-    Calculate the scaling factor needed to resize an image proportionally
+    """Calculate the scaling factor needed to resize an image proportionally
     so its longest edge equals max_dimension.
 
     Args:
@@ -138,6 +137,7 @@ def calculate_scale_factor(width: int, height: int, max_dimension: int = 1366) -
 
     Returns:
         float: Scaling factor to apply to both dimensions
+
     """
     # Find the longer edge
     longest_edge = max(width, height)

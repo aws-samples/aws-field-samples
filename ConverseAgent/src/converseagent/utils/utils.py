@@ -33,8 +33,7 @@ def get_context_window(model_id: str) -> int:
 def create_timestamp_content_block(
     start_datetime: datetime, current_datetime: datetime | None = None
 ) -> Dict[str, str]:
-    "Returns a timestamp content block"
-
+    """Returns a timestamp content block"""
     if current_datetime is None:
         current_datetime = datetime.now()
 
@@ -58,16 +57,15 @@ def create_token_count_content_block(
 
 
 def text_tool_response(text: str) -> Dict[str, str | List[Dict[str, str]]]:
-    """
-    Helper function to create a simple tool response for text only responses
+    """Helper function to create a simple tool response for text only responses
 
     Args:
         text (str): The text to be included in the tool response
 
     Returns:
         dict: A dictionary containing the tool response
-    """
 
+    """
     tool_result_content: List[Dict[str, str]] = [{"text": text}]
 
     tool_response: Dict[str, str | List[Dict[str, str]]] = {

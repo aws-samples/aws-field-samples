@@ -62,8 +62,7 @@ def bucket_elements(elements, bucket_size=50):
 
 
 class BrowserContext(BaseModel):
-    """
-    Contains the Browser object and other state metadata required
+    """Contains the Browser object and other state metadata required
     for the tools to function.
     """
 
@@ -233,10 +232,8 @@ class BrowserContext(BaseModel):
     async def get_interactable_elements(
         self, only_visible_elements=True, only_viewport_elements=False
     ):
+        """Retrieves interactable elements on the page concurrently
         """
-        Retrieves interactable elements on the page concurrently
-        """
-
         # roles = ["button", "link", "searchbox", ]
         roles = [
             # Clickable Primary Elements
@@ -370,7 +367,6 @@ class BrowserContext(BaseModel):
 
     async def format(self):
         """Formats the browser context to Converse Format"""
-
         current_url_prompt = f"Current URL: {self.current_page.url}"
         current_url_text_block = TextContentBlock(
             text=current_url_prompt, metadata={"retention": "after_next_turn"}

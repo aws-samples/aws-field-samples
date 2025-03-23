@@ -31,6 +31,7 @@ class BaseMemory(BaseModel):
 
             # Clears memory
             memory.clear()
+
     """
 
     # Stores the list of messages
@@ -41,6 +42,7 @@ class BaseMemory(BaseModel):
 
         Args:
             message (Message): The Message to append to memory
+
         """
         self.memory.append(message)
 
@@ -50,8 +52,8 @@ class BaseMemory(BaseModel):
         Returns:
             list: The list of user (UserMessage) and
                 assistant (AssistantMessage) messages
-        """
 
+        """
         return self.memory
 
     def set_messages(self, messages: List[Message]) -> None:
@@ -59,6 +61,7 @@ class BaseMemory(BaseModel):
 
         Args:
             messages (List[Message]): The list of messages to set
+
         """
         self.memory = messages
 
@@ -67,8 +70,8 @@ class BaseMemory(BaseModel):
 
         Returns:
             list: The list of stored messages in Converse format
-        """
 
+        """
         return [message.format() for message in self.memory]
 
     def clear(self) -> None:

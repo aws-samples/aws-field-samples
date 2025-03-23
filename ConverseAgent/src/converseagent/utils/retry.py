@@ -17,8 +17,7 @@ def with_exponential_backoff(
     max_delay: float = 30.0,
     jitter_factor: float = 0.1,
 ) -> Callable:
-    """
-    Decorator that implements exponential backoff retry logic.
+    """Decorator that implements exponential backoff retry logic.
 
     Args:
         retryable_exceptions: Exception or tuple of exceptions to retry on
@@ -39,6 +38,7 @@ def with_exponential_backoff(
         def my_function():
             # Your code here
             pass
+
     """
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:

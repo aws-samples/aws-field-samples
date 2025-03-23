@@ -16,6 +16,7 @@ class TextContentBlock(BaseContentBlock):
         ```
             text_block = TextContentBlock(text="Sample text here")
         ```
+
     """
 
     type: Literal["text"] = "text"
@@ -27,5 +28,6 @@ class TextContentBlock(BaseContentBlock):
         Returns:
             Dict[str, str]: A dictionary containing:
                 - text: str - The text content
+
         """
         return {"text": self.text}

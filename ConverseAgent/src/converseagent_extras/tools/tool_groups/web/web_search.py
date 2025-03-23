@@ -57,7 +57,6 @@ class WebSearchToolGroup(BaseToolGroup):
     @model_validator(mode="after")
     def _validate_tools(self):
         """Check if tools are passed, otherwise add tools"""
-
         if self.brave_api_key is None:
             self.brave_api_key = os.environ.get("BRAVE_API_KEY")
             if not self.brave_api_key:
@@ -79,7 +78,6 @@ class WebSearchToolGroup(BaseToolGroup):
     @classmethod
     def get_tool_group_spec(cls):
         """Returns the tool group spec"""
-
         return {
             "toolGroupSpec": {
                 "name": cls.model_fields["name"].default,
@@ -115,7 +113,6 @@ class BraveSearchTool(BaseTool):
     @model_validator(mode="after")
     def _validate_tool(self):
         """Check if tools are passed, otherwise add tools"""
-
         if self.brave_api_key is None:
             self.brave_api_key = os.environ.get("BRAVE_API_KEY")
             if not self.brave_api_key:
@@ -126,15 +123,13 @@ class BraveSearchTool(BaseTool):
 
     def invoke(self, *args, **kwargs) -> TextToolResponse:
         """Invokes the tool logic"""
-
         return self.search(*args, **kwargs)
 
     @with_exponential_backoff(max_retries=3, base_delay=1, max_delay=30)
     def _make_http_get_request(
         self, url: str, headers: dict, params: dict, timeout: int = 60
     ) -> List[Dict[str, Any]]:
-        """
-        Makes an HTTP GET request to the specified URL.
+        """Makes an HTTP GET request to the specified URL.
 
         Args:
             url (str): The URL to send the request to
@@ -143,6 +138,7 @@ class BraveSearchTool(BaseTool):
 
         Returns:
             requests.Response: The response from the server
+
         """
         logger.info("Making URL get request")
         response = requests.get(url, headers=headers, params=params, timeout=timeout)
@@ -181,8 +177,8 @@ class BraveSearchTool(BaseTool):
         Returns:
             TextToolResponse: The response from the tool containing the search
                 results
-        """
 
+        """
         url = "https://api.search.brave.com/res/v1/web/search"
         headers = {
             "Accept": "application/json",

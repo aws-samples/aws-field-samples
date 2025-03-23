@@ -14,8 +14,9 @@ def delete_tool_result_blocks_after_next_turn(messages: List[Message]) -> List[M
     Args:
         messages (List[Message]): The messages list
 
-    Returns
+    Returns:
         List[Message]: The messages list with the content blocks removed
+
     """
     processed_messages = []
 

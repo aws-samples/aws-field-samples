@@ -22,6 +22,7 @@ class UserMessage(BaseMessage[UserContentBlock]):
             this is ignored.
         content (list[UserContentBlock]): List of content blocks
             for the user message.
+
     """
 
     role: Literal["user"] = "user"

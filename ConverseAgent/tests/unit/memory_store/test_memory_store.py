@@ -8,7 +8,6 @@ class TestBaseMemoryStore:
 
     def test_save_load_memory(self):
         """Tests the load_memory method"""
-
         memory_store = BaseMemoryStore()
         memory = BaseMemory()
         session_id = "test"
