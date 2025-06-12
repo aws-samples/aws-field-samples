@@ -1,6 +1,6 @@
 ### Converse SQL Agent: Building an intelligent text-to-SQL agent using Amazon Bedrock and Converse API. This is a Sample Code for a quick POC and the infrastructure can be adapted based on final implementation.
 
-Authors: Ross Alas, Pavan Kumar, Parag Srivastava and Abdullah Siddiqui 
+Authors: Pavan Kumar, Parag Srivastava and Abdullah Siddiqui 
 
 Converse SQL Agent is a simple and powerful text-to-sql solution that can connect to
 different databases and queries them all through natural language. It is built using
